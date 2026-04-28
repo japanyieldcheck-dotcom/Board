@@ -7,6 +7,20 @@
 .warn-banner{background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-family:‘Space Mono’,monospace;font-size:11px;color:#f87171;display:none}.warn-banner.visible{display:block}
 .memory-section{background:var(–surface);border:1px solid var(–accent-gold);border-radius:12px;padding:16px;margin-bottom:16px;opacity:0.85}.memory-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}.memory-label{font-family:‘Space Mono’,monospace;font-size:10px;letter-spacing:2px;color:var(–accent-gold);text-transform:uppercase}.memory-toggle{font-family:‘Space Mono’,monospace;font-size:10px;color:var(–text-dim)}.memory-body{margin-top:12px}.memory-body textarea{min-height:120px;font-size:12px;font-family:‘Space Mono’,monospace}.memory-save{margin-top:8px;padding:8px 16px;background:transparent;border:1px solid var(–accent-gold);color:var(–accent-gold);border-radius:6px;font-family:‘Space Mono’,monospace;font-size:10px;letter-spacing:1px;cursor:pointer}.memory-save:hover{background:rgba(200,169,110,0.1)}.memory-status{font-family:‘Space Mono’,monospace;font-size:10px;color:var(–accent-green);margin-left:10px;opacity:0}
 .copy-btn{background:transparent;border:none;color:var(–text-dim);font-family:‘Space Mono’,monospace;font-size:9px;letter-spacing:1px;cursor:pointer;padding:2px 6px;border-radius:4px;transition:color 0.2s}.copy-btn:hover{color:var(–accent-gold)}.copy-btn.copied{color:var(–accent-green)}
+.copy-btn{background:transparent;border:none;color:var(–text-dim);font-family:‘Space Mono’,monospace;font-size:9px;letter-spacing:1px;cursor:pointer;padding:2px 6px;border-radius:4px;transition:color 0.2s}.copy-btn:hover{color:var(–accent-gold)}.copy-btn.copied{color:var(–accent-green)}
+.round-container{margin-bottom:24px;border:1px solid var(–border);border-radius:12px;overflow:hidden}
+.round-header{padding:10px 16px;background:var(–surface);border-bottom:1px solid var(–border);display:flex;align-items:center;gap:8px}
+.round-badge{font-family:‘Space Mono’,monospace;font-size:10px;letter-spacing:2px;color:var(–accent-gold);font-weight:700}
+.round-topic{font-family:‘Space Mono’,monospace;font-size:10px;color:var(–text-dim);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.round-content{padding:0}
+.followup-section{background:var(–surface);border:1px solid var(–accent-gold);border-radius:12px;padding:16px;margin-top:16px;display:none}
+.followup-label{font-family:‘Space Mono’,monospace;font-size:10px;letter-spacing:2px;color:var(–accent-gold);text-transform:uppercase;margin-bottom:10px}
+.followup-hint{font-family:‘Space Mono’,monospace;font-size:10px;color:var(–text-dim);margin-bottom:10px}
+.btn-followup{width:100%;margin-top:12px;padding:12px;background:transparent;color:var(–accent-gold);border:1px solid var(–accent-gold);border-radius:8px;font-family:‘Space Mono’,monospace;font-size:12px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all 0.2s}
+.btn-followup:hover{background:rgba(200,169,110,0.1)}
+.btn-followup:disabled{opacity:0.4;cursor:not-allowed}
+.btn-new-session{width:100%;margin-top:8px;padding:10px;background:transparent;color:var(–text-dim);border:1px solid var(–border);border-radius:8px;font-family:‘Space Mono’,monospace;font-size:11px;cursor:pointer}
+.btn-new-session:hover{border-color:var(–text-dim)}
 </style></head><body>
 
 <div class="warn-banner" id="warnBanner">⚠ API Key 未設定，請點左下角 ⚙ 輸入金鑰</div>
@@ -32,6 +46,20 @@
   <div class="divider" id="divider" style="display:none"><div class="divider-line"></div><div class="divider-text">董事長綜合裁決</div><div class="divider-line"></div></div>
   <div class="response-card card-synthesis" id="card-synthesis"><div class="card-header"><div class="card-dot"></div><div class="card-title">三方分歧分析</div><div class="card-role">供 CEO 決策參考</div><button class="copy-btn" onclick="copyCard('synthesis',this)">複製</button></div><div class="card-body" id="body-synthesis"></div></div>
 </div>
+
+<!-- Follow-up section -->
+
+<div class="followup-section" id="followupSection">
+  <div class="followup-label">💬 第2輪補充 — 貼入各APP回覆</div>
+  <div class="followup-hint">將三個AI APP的回覆貼入下方，董事會將結合第1輪結論再分析一次</div>
+  <textarea id="followupText" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Noto Serif TC,serif;font-size:14px;padding:12px;resize:none;min-height:120px;line-height:1.6;outline:none;transition:border-color 0.2s" placeholder="例如：ChatGPT說...&#10;Gemini說...&#10;我的補充意見是..."></textarea>
+  <button class="btn-followup" id="followupBtn" onclick="askFollowup()">召開第2輪董事會 →</button>
+  <button class="btn-new-session" onclick="newSession()">🔄 開新議題</button>
+</div>
+
+<!-- Round history -->
+
+<div id="roundHistory"></div>
 
 <!-- Settings Button -->
 
@@ -204,13 +232,45 @@ function setCard(id,content,isError=false){
 }
 function showCard(id){document.getElementById(`card-${id}`).classList.add('visible');}
 
-async function askAll(){
-  const q=document.getElementById('question').value.trim();
-  if(!q)return;
+// Session state
+let sessionRounds=[];
+let currentRound=0;
+
+function saveRoundToHistory(roundNum,topic,responses){
+  sessionRounds.push({round:roundNum,topic,responses});
+  // Save to localStorage
+  const key='board_session_'+Date.now();
+  try{localStorage.setItem('board_last_session',JSON.stringify({topic:sessionRounds[0]?.topic,rounds:sessionRounds}));}catch(e){}
+}
+
+function renderRoundInHistory(roundNum,topic,cv,gv,ov,sv){
+  const hist=document.getElementById('roundHistory');
+  const div=document.createElement('div');
+  div.className='round-container';
+  div.id='round-'+roundNum;
+  const shortTopic=topic.length>60?topic.substring(0,60)+'...':topic;
+  div.innerHTML=`
+    <div class="round-header">
+      <span class="round-badge">第${roundNum}輪</span>
+      <span class="round-topic">${shortTopic}</span>
+    </div>
+    <div class="round-content">
+      ${cv?`<div style="padding:12px 16px;border-bottom:1px solid var(--border)"><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--claude);margin-bottom:6px">CLAUDE — CRO</div><div style="font-size:13px;line-height:1.7;color:var(--text-dim)">${cv.replace(/
+/g,'<br>')}</div></div>`:''}
+      ${gv?`<div style="padding:12px 16px;border-bottom:1px solid var(--border)"><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--gemini);margin-bottom:6px">GEMINI — CSO</div><div style="font-size:13px;line-height:1.7;color:var(--text-dim)">${gv.replace(/
+/g,'<br>')}</div></div>`:''}
+      ${ov?`<div style="padding:12px 16px;border-bottom:1px solid var(--border)"><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--gpt);margin-bottom:6px">CHATGPT — CFO</div><div style="font-size:13px;line-height:1.7;color:var(--text-dim)">${ov.replace(/
+/g,'<br>')}</div></div>`:''}
+      ${sv?`<div style="padding:12px 16px;background:rgba(200,169,110,0.03)"><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--accent-gold);margin-bottom:6px">分歧分析</div><div style="font-size:13px;line-height:1.7;color:var(--text)">${sv.replace(/
+/g,'<br>')}</div></div>`:''}
+    </div>`;
+  hist.appendChild(div);
+}
+
+async function runSession(q,isFollowup=false){
   const k=getKeys();
   if(!k.claude||!k.gemini||!k.openai){openSettings();return;}
-  const btn=document.getElementById('submitBtn');
-  btn.disabled=true;
+
   document.getElementById('statusBar').classList.add('visible');
   document.getElementById('divider').style.display='none';
   ['claude','gemini','gpt','synthesis'].forEach(id=>{
@@ -218,21 +278,100 @@ async function askAll(){
     document.getElementById(`body-${id}`).innerHTML='<div class="loading"><div class="spinner"></div>分析中...</div>';
   });
   document.getElementById('statusText').textContent='三位顧問同步分析中...';
+
   const[cr,gr,or_]=await Promise.allSettled([callClaude(q),callGemini(q),callGPT(q)]);
   const cv=cr.status==='fulfilled'?cr.value:null;
   const gv=gr.status==='fulfilled'?gr.value:null;
   const ov=or_.status==='fulfilled'?or_.value:null;
+
   if(cv)setCard('claude',cv);else setCard('claude',cr.reason?.message||'連線失敗',true);
   if(gv)setCard('gemini',gv);else setCard('gemini',gr.reason?.message||'連線失敗',true);
   if(ov)setCard('gpt',ov);else setCard('gpt',or_.reason?.message||'連線失敗',true);
+
   document.getElementById('statusText').textContent='彙整三方意見...';
   document.getElementById('divider').style.display='flex';
-  const successCount=[cv,gv,ov].filter(Boolean).length;if(successCount>=2){
-    try{const s=await callSynthesis(q,cv,gv,ov);setCard('synthesis',s);}
+
+  let sv=null;
+  const successCount=[cv,gv,ov].filter(Boolean).length;
+  if(successCount>=2){
+    try{sv=await callSynthesis(q,cv,gv,ov);setCard('synthesis',sv);}
     catch(e){setCard('synthesis',e.message,true);}
   }else{setCard('synthesis','至少需要兩位顧問回應才能進行分析',true);}
+
   document.getElementById('statusBar').classList.remove('visible');
+
+  // Save to history
+  currentRound++;
+  const topic=isFollowup?`[第${currentRound}輪補充] `+q.substring(0,50):q;
+  renderRoundInHistory(currentRound,topic,cv,gv,ov,sv);
+  saveRoundToHistory(currentRound,topic,{cv,gv,ov,sv});
+
+  // Show followup section
+  document.getElementById('followupSection').style.display='block';
+  // Update followup label
+  document.getElementById('followupSection').querySelector('.followup-label').textContent=
+    `💬 第${currentRound+1}輪補充 — 貼入各APP回覆`;
+  document.getElementById('followupSection').querySelector('.followup-hint').textContent=
+    `將各AI APP對第${currentRound}輪結論的回覆貼入，董事會將結合歷史記錄再分析一次`;
+}
+
+async function askAll(){
+  const q=document.getElementById('question').value.trim();
+  if(!q)return;
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true;
+  currentRound=0;
+  sessionRounds=[];
+  document.getElementById('roundHistory').innerHTML='';
+  document.getElementById('followupSection').style.display='none';
+  await runSession(q,false);
   btn.disabled=false;
+}
+
+async function askFollowup(){
+  const followup=document.getElementById('followupText').value.trim();
+  if(!followup)return;
+  const btn=document.getElementById('followupBtn');
+  btn.disabled=true;
+
+  // Build context with previous rounds
+  const prevContext=sessionRounds.map(r=>`【第${r.round}輪】
+議題：${r.topic}
+Claude-CRO：${r.responses.cv||'未回應'}
+Gemini-CSO：${r.responses.gv||'未回應'}
+GPT-CFO：${r.responses.ov||'未回應'}
+分歧分析：${r.responses.sv||'未完成'}`).join('
+
+---
+
+');
+  const q=`【歷史記錄】
+${prevContext}
+
+---
+
+【第${currentRound+1}輪補充意見】
+${followup}
+
+請基於以上所有輪次的討論，提供新一輪分析。`;
+
+  document.getElementById('followupText').value='';
+  await runSession(q,true);
+  btn.disabled=false;
+}
+
+function newSession(){
+  if(!confirm('開始新議題將清除目前的討論記錄，確定嗎？'))return;
+  currentRound=0;
+  sessionRounds=[];
+  document.getElementById('roundHistory').innerHTML='';
+  document.getElementById('followupSection').style.display='none';
+  document.getElementById('question').value='';
+  ['claude','gemini','gpt','synthesis'].forEach(id=>{
+    document.getElementById(`card-${id}`).classList.remove('visible');
+  });
+  document.getElementById('divider').style.display='none';
+  window.scrollTo(0,0);
 }
 </script>
 
