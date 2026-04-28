@@ -1,1 +1,179 @@
-<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI 董事會</title><style>@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap');:root{--bg:#0a0a0f;--surface:#12121a;--border:#1e1e2e;--accent-gold:#c8a96e;--accent-blue:#4a9eff;--accent-green:#4ade80;--text:#e8e4dc;--text-dim:#6b6b7a;--claude:#c8a96e;--gemini:#4a9eff;--gpt:#4ade80}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--text);font-family:'Noto Serif TC',serif;min-height:100vh;padding:20px 16px 40px}.header{text-align:center;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border)}.header-label{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:4px;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px}.header h1{font-size:24px;font-weight:700;color:var(--accent-gold);letter-spacing:2px}.header-sub{font-size:12px;color:var(--text-dim);margin-top:6px;font-family:'Space Mono',monospace}.roles{display:flex;gap:8px;justify-content:center;margin-bottom:24px;flex-wrap:wrap}.role-badge{padding:4px 12px;border-radius:20px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;border:1px solid}.role-badge.you{border-color:var(--accent-gold);color:var(--accent-gold);background:rgba(200,169,110,0.08)}.role-badge.claude{border-color:var(--claude);color:var(--claude);background:rgba(200,169,110,0.05)}.role-badge.gemini{border-color:var(--gemini);color:var(--gemini);background:rgba(74,158,255,0.05)}.role-badge.gpt{border-color:var(--gpt);color:var(--gpt);background:rgba(74,222,128,0.05)}.input-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}.input-label{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text-dim);margin-bottom:10px;text-transform:uppercase}textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Noto Serif TC',serif;font-size:14px;padding:12px;resize:none;min-height:100px;line-height:1.6;outline:none;transition:border-color 0.2s}textarea:focus{border-color:var(--accent-gold)}textarea::placeholder{color:var(--text-dim)}.btn-submit{width:100%;margin-top:12px;padding:14px;background:var(--accent-gold);color:var(--bg);border:none;border-radius:8px;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:opacity 0.2s,transform 0.1s}.btn-submit:hover{opacity:0.9}.btn-submit:active{transform:scale(0.98)}.btn-submit:disabled{opacity:0.4;cursor:not-allowed}.responses{display:flex;flex-direction:column;gap:14px}.response-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:none}.response-card.visible{display:block}.card-header{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}.card-dot{width:8px;height:8px;border-radius:50%}.card-title{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;font-weight:700;text-transform:uppercase}.card-role{font-family:'Space Mono',monospace;font-size:9px;color:var(--text-dim);margin-left:auto;letter-spacing:1px}.card-body{padding:16px;font-size:14px;line-height:1.8;min-height:80px}.card-claude .card-dot{background:var(--claude)}.card-claude .card-title{color:var(--claude)}.card-gemini .card-dot{background:var(--gemini)}.card-gemini .card-title{color:var(--gemini)}.card-gpt .card-dot{background:var(--gpt)}.card-gpt .card-title{color:var(--gpt)}.card-synthesis{border-color:var(--accent-gold)}.card-synthesis .card-dot{background:var(--accent-gold)}.card-synthesis .card-title{color:var(--accent-gold)}.loading{display:flex;align-items:center;gap:8px;color:var(--text-dim);font-family:'Space Mono',monospace;font-size:11px}.spinner{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent-gold);border-radius:50%;animation:spin 0.8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.error-text{color:#f87171;font-family:'Space Mono',monospace;font-size:11px}.divider{display:flex;align-items:center;gap:12px;margin:8px 0}.divider-line{flex:1;height:1px;background:var(--border)}.divider-text{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase}.status-bar{display:flex;gap:6px;margin-bottom:16px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-family:'Space Mono',monospace;font-size:10px;color:var(--text-dim);display:none}.status-bar.visible{display:flex;align-items:center}.status-dot{width:6px;height:6px;border-radius:50%;background:var(--accent-gold);animation:pulse 1.5s infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}</style></head><body><div class="header"><div class="header-label">James's</div><h1>AI 董事會</h1><div class="header-sub">三方交叉驗證系統</div></div><div class="roles"><span class="role-badge you">👑 YOU — CEO</span><span class="role-badge claude">⚖️ CLAUDE — CRO</span><span class="role-badge gemini">📊 GEMINI — CSO</span><span class="role-badge gpt">🛡️ GPT — CFO</span></div><div class="input-section"><div class="input-label">📋 議題輸入</div><textarea id="question" placeholder="輸入你想讓董事會討論的問題&#10;例如：這個東京物件的投資邏輯是否成立？"></textarea><button class="btn-submit" id="submitBtn" onclick="askAll()">召開董事會 →</button></div><div class="status-bar" id="statusBar"><div class="status-dot"></div><span id="statusText">董事會進行中...</span></div><div class="responses"><div class="response-card card-claude" id="card-claude"><div class="card-header"><div class="card-dot"></div><div class="card-title">Claude</div><div class="card-role">首席研究官 · 風險審查</div></div><div class="card-body" id="body-claude"></div></div><div class="response-card card-gemini" id="card-gemini"><div class="card-header"><div class="card-dot"></div><div class="card-title">Gemini</div><div class="card-role">首席數據官 · 資料整合</div></div><div class="card-body" id="body-gemini"></div></div><div class="response-card card-gpt" id="card-gpt"><div class="card-header"><div class="card-dot"></div><div class="card-title">ChatGPT</div><div class="card-role">財務風控長 · 數字審查</div></div><div class="card-body" id="body-gpt"></div></div><div class="divider" id="divider" style="display:none"><div class="divider-line"></div><div class="divider-text">董事長綜合裁決</div><div class="divider-line"></div></div><div class="response-card card-synthesis" id="card-synthesis"><div class="card-header"><div class="card-dot"></div><div class="card-title">三方分歧分析</div><div class="card-role">供 CEO 決策參考</div></div><div class="card-body" id="body-synthesis"></div></div></div><script>const CLAUDE_KEY='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';const GEMINI_KEY='AIzaSyDudOnQjCwd3535lOZnnQZdkC01tXkt1Ck';const OPENAI_KEY='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';const SYS=`你是James的AI董事會成員。James是台灣半導體工程師，正在轉型為全職內容創作者和被動收入投資者。回答請用繁體中文，簡潔直接，條列重點。`;const P={claude:SYS+'\n你的角色：首席研究官(CRO)。專注精準審查、風險識別、邏輯漏洞偵測。',gemini:SYS+'\n你的角色：首席數據官(CSO)。專注數據結構化、市場資料彙整、量化分析。',gpt:SYS+'\n你的角色：財務風控長(CFO)。專注財務建模、現金流分析、反駁假設。'};async function callClaude(q){const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':CLAUDE_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,system:P.claude,messages:[{role:'user',content:q}]})});const d=await r.json();if(d.error)throw new Error(d.error.message);return d.content[0].text}async function callGemini(q){const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_instruction:{parts:[{text:P.gemini}]},contents:[{parts:[{text:q}]}]})});const d=await r.json();if(d.error)throw new Error(d.error.message);return d.candidates[0].content.parts[0].text}async function callGPT(q){const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${OPENAI_KEY}`},body:JSON.stringify({model:'gpt-4o-mini',max_tokens:1000,messages:[{role:'system',content:P.gpt},{role:'user',content:q}]})});const d=await r.json();if(d.error)throw new Error(d.error.message);return d.choices[0].message.content}async function callSynthesis(q,c,g,o){const prompt=`問題：${q}\n\nClaude-CRO：${c}\n\nGemini-CSO：${g}\n\nGPT-CFO：${o}\n\n請做三方分歧分析：1.三方共識點 2.三方分歧點 3.給CEO的一句決策建議`;const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':CLAUDE_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:800,system:'你是James的AI董事會主持人，綜合三方意見給CEO決策參考。用繁體中文，簡潔有力。',messages:[{role:'user',content:prompt}]})});const d=await r.json();if(d.error)throw new Error(d.error.message);return d.content[0].text}function setCard(id,content,isError=false){const el=document.getElementById(`body-${id}`);el.innerHTML=isError?`<div class="error-text">⚠ ${content}</div>`:content.replace(/\n/g,'<br>')}function showCard(id){document.getElementById(`card-${id}`).classList.add('visible')}async function askAll(){const q=document.getElementById('question').value.trim();if(!q)return;const btn=document.getElementById('submitBtn');btn.disabled=true;document.getElementById('statusBar').classList.add('visible');document.getElementById('divider').style.display='none';['claude','gemini','gpt','synthesis'].forEach(id=>{showCard(id);document.getElementById(`body-${id}`).innerHTML='<div class="loading"><div class="spinner"></div>分析中...</div>'});document.getElementById('statusText').textContent='三位顧問同步分析中...';const[cr,gr,or_]=await Promise.allSettled([callClaude(q),callGemini(q),callGPT(q)]);const cv=cr.status==='fulfilled'?cr.value:null;const gv=gr.status==='fulfilled'?gr.value:null;const ov=or_.status==='fulfilled'?or_.value:null;if(cv)setCard('claude',cv);else setCard('claude',cr.reason?.message||'連線失敗',true);if(gv)setCard('gemini',gv);else setCard('gemini',gr.reason?.message||'連線失敗',true);if(ov)setCard('gpt',ov);else setCard('gpt',or_.reason?.message||'連線失敗',true);document.getElementById('statusText').textContent='彙整三方意見...';document.getElementById('divider').style.display='flex';if(cv&&gv&&ov){try{const s=await callSynthesis(q,cv,gv,ov);setCard('synthesis',s)}catch(e){setCard('synthesis',e.message,true)}}else{setCard('synthesis','部分顧問回應失敗，無法完成三方分析',true)}document.getElementById('statusBar').classList.remove('visible');btn.disabled=false}</script></body></html>
+<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI 董事會</title><style>@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap');:root{--bg:#0a0a0f;--surface:#12121a;--border:#1e1e2e;--accent-gold:#c8a96e;--accent-blue:#4a9eff;--accent-green:#4ade80;--text:#e8e4dc;--text-dim:#6b6b7a;--claude:#c8a96e;--gemini:#4a9eff;--gpt:#4ade80}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--text);font-family:'Noto Serif TC',serif;min-height:100vh;padding:20px 16px 40px}.header{text-align:center;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border)}.header-label{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:4px;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px}.header h1{font-size:24px;font-weight:700;color:var(--accent-gold);letter-spacing:2px}.header-sub{font-size:12px;color:var(--text-dim);margin-top:6px;font-family:'Space Mono',monospace}.roles{display:flex;gap:8px;justify-content:center;margin-bottom:24px;flex-wrap:wrap}.role-badge{padding:4px 12px;border-radius:20px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;border:1px solid}.role-badge.you{border-color:var(--accent-gold);color:var(--accent-gold);background:rgba(200,169,110,0.08)}.role-badge.claude{border-color:var(--claude);color:var(--claude);background:rgba(200,169,110,0.05)}.role-badge.gemini{border-color:var(--gemini);color:var(--gemini);background:rgba(74,158,255,0.05)}.role-badge.gpt{border-color:var(--gpt);color:var(--gpt);background:rgba(74,222,128,0.05)}.input-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}.input-label{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text-dim);margin-bottom:10px;text-transform:uppercase}textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Noto Serif TC',serif;font-size:14px;padding:12px;resize:none;min-height:100px;line-height:1.6;outline:none;transition:border-color 0.2s}textarea:focus{border-color:var(--accent-gold)}textarea::placeholder{color:var(--text-dim)}.btn-submit{width:100%;margin-top:12px;padding:14px;background:var(--accent-gold);color:var(--bg);border:none;border-radius:8px;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:opacity 0.2s,transform 0.1s}.btn-submit:hover{opacity:0.9}.btn-submit:active{transform:scale(0.98)}.btn-submit:disabled{opacity:0.4;cursor:not-allowed}.responses{display:flex;flex-direction:column;gap:14px}.response-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:none}.response-card.visible{display:block}.card-header{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}.card-dot{width:8px;height:8px;border-radius:50%}.card-title{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;font-weight:700;text-transform:uppercase}.card-role{font-family:'Space Mono',monospace;font-size:9px;color:var(--text-dim);margin-left:auto;letter-spacing:1px}.card-body{padding:16px;font-size:14px;line-height:1.8;min-height:80px}.card-claude .card-dot{background:var(--claude)}.card-claude .card-title{color:var(--claude)}.card-gemini .card-dot{background:var(--gemini)}.card-gemini .card-title{color:var(--gemini)}.card-gpt .card-dot{background:var(--gpt)}.card-gpt .card-title{color:var(--gpt)}.card-synthesis{border-color:var(--accent-gold)}.card-synthesis .card-dot{background:var(--accent-gold)}.card-synthesis .card-title{color:var(--accent-gold)}.loading{display:flex;align-items:center;gap:8px;color:var(--text-dim);font-family:'Space Mono',monospace;font-size:11px}.spinner{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent-gold);border-radius:50%;animation:spin 0.8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.error-text{color:#f87171;font-family:'Space Mono',monospace;font-size:11px}.divider{display:flex;align-items:center;gap:12px;margin:8px 0}.divider-line{flex:1;height:1px;background:var(--border)}.divider-text{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase}.status-bar{display:flex;gap:6px;margin-bottom:16px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-family:'Space Mono',monospace;font-size:10px;color:var(--text-dim);display:none}.status-bar.visible{display:flex;align-items:center}.status-dot{width:6px;height:6px;border-radius:50%;background:var(--accent-gold);animation:pulse 1.5s infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* Settings */
+.settings-btn{position:fixed;bottom:20px;left:20px;width:40px;height:40px;border-radius:50%;background:var(–surface);border:1px solid var(–border);color:var(–text-dim);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color 0.2s}.settings-btn:hover{border-color:var(–accent-gold)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}.modal-overlay.visible{display:flex}.modal{background:var(–surface);border:1px solid var(–border);border-radius:16px;padding:24px;width:100%;max-width:480px}.modal-title{font-family:‘Space Mono’,monospace;font-size:12px;letter-spacing:3px;color:var(–accent-gold);text-transform:uppercase;margin-bottom:20px}.key-field{margin-bottom:16px}.key-label{font-family:‘Space Mono’,monospace;font-size:10px;letter-spacing:2px;color:var(–text-dim);text-transform:uppercase;margin-bottom:6px}.key-input{width:100%;background:var(–bg);border:1px solid var(–border);border-radius:8px;color:var(–text);font-family:‘Space Mono’,monospace;font-size:11px;padding:10px 12px;outline:none;transition:border-color 0.2s}.key-input:focus{border-color:var(–accent-gold)}.key-input::placeholder{color:var(–text-dim);font-size:10px}.modal-actions{display:flex;gap:10px;margin-top:20px}.btn-save{flex:1;padding:12px;background:var(–accent-gold);color:var(–bg);border:none;border-radius:8px;font-family:‘Space Mono’,monospace;font-size:12px;font-weight:700;letter-spacing:2px;cursor:pointer}.btn-cancel{padding:12px 16px;background:transparent;color:var(–text-dim);border:1px solid var(–border);border-radius:8px;font-family:‘Space Mono’,monospace;font-size:12px;cursor:pointer}.key-status{font-family:‘Space Mono’,monospace;font-size:10px;margin-top:4px}.key-status.ok{color:var(–accent-green)}.key-status.missing{color:#f87171}
+.warn-banner{background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-family:‘Space Mono’,monospace;font-size:11px;color:#f87171;display:none}.warn-banner.visible{display:block}
+</style></head><body>
+
+<div class="warn-banner" id="warnBanner">⚠ API Key 未設定，請點左下角 ⚙ 輸入金鑰</div>
+
+<div class="header"><div class="header-label">James's</div><h1>AI 董事會</h1><div class="header-sub">三方交叉驗證系統</div></div>
+<div class="roles"><span class="role-badge you">👑 YOU — CEO</span><span class="role-badge claude">⚖️ CLAUDE — CRO</span><span class="role-badge gemini">📊 GEMINI — CSO</span><span class="role-badge gpt">🛡️ GPT — CFO</span></div>
+<div class="input-section"><div class="input-label">📋 議題輸入</div><textarea id="question" placeholder="輸入你想讓董事會討論的問題&#10;例如：這個東京物件的投資邏輯是否成立？"></textarea><button class="btn-submit" id="submitBtn" onclick="askAll()">召開董事會 →</button></div>
+<div class="status-bar" id="statusBar"><div class="status-dot"></div><span id="statusText">董事會進行中...</span></div>
+<div class="responses">
+  <div class="response-card card-claude" id="card-claude"><div class="card-header"><div class="card-dot"></div><div class="card-title">Claude</div><div class="card-role">首席研究官 · 風險審查</div></div><div class="card-body" id="body-claude"></div></div>
+  <div class="response-card card-gemini" id="card-gemini"><div class="card-header"><div class="card-dot"></div><div class="card-title">Gemini</div><div class="card-role">首席數據官 · 資料整合</div></div><div class="card-body" id="body-gemini"></div></div>
+  <div class="response-card card-gpt" id="card-gpt"><div class="card-header"><div class="card-dot"></div><div class="card-title">ChatGPT</div><div class="card-role">財務風控長 · 數字審查</div></div><div class="card-body" id="body-gpt"></div></div>
+  <div class="divider" id="divider" style="display:none"><div class="divider-line"></div><div class="divider-text">董事長綜合裁決</div><div class="divider-line"></div></div>
+  <div class="response-card card-synthesis" id="card-synthesis"><div class="card-header"><div class="card-dot"></div><div class="card-title">三方分歧分析</div><div class="card-role">供 CEO 決策參考</div></div><div class="card-body" id="body-synthesis"></div></div>
+</div>
+
+<!-- Settings Button -->
+
+<button class="settings-btn" onclick="openSettings()">⚙</button>
+
+<!-- Settings Modal -->
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title">⚙ API Key 設定</div>
+    <div class="key-field">
+      <div class="key-label">Claude API Key</div>
+      <input class="key-input" id="input-claude" type="password" placeholder="sk-ant-...">
+      <div class="key-status" id="status-claude"></div>
+    </div>
+    <div class="key-field">
+      <div class="key-label">Gemini API Key</div>
+      <input class="key-input" id="input-gemini" type="password" placeholder="AIza...">
+      <div class="key-status" id="status-gemini"></div>
+    </div>
+    <div class="key-field">
+      <div class="key-label">OpenAI API Key</div>
+      <input class="key-input" id="input-openai" type="password" placeholder="sk-proj-...">
+      <div class="key-status" id="status-openai"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeSettings()">取消</button>
+      <button class="btn-save" onclick="saveKeys()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Load keys from localStorage
+function getKeys(){
+  return {
+    claude: localStorage.getItem('board_claude_key')||'',
+    gemini: localStorage.getItem('board_gemini_key')||'',
+    openai: localStorage.getItem('board_openai_key')||''
+  }
+}
+
+function openSettings(){
+  const k=getKeys();
+  document.getElementById('input-claude').value=k.claude;
+  document.getElementById('input-gemini').value=k.gemini;
+  document.getElementById('input-openai').value=k.openai;
+  updateStatusLabels(k);
+  document.getElementById('modalOverlay').classList.add('visible');
+}
+
+function closeSettings(){
+  document.getElementById('modalOverlay').classList.remove('visible');
+}
+
+function updateStatusLabels(k){
+  const set=(id,val)=>{
+    const el=document.getElementById(`status-${id}`);
+    if(val){el.textContent='✓ 已設定';el.className='key-status ok';}
+    else{el.textContent='✗ 未設定';el.className='key-status missing';}
+  };
+  set('claude',k.claude);set('gemini',k.gemini);set('openai',k.openai);
+}
+
+function saveKeys(){
+  const ck=document.getElementById('input-claude').value.trim();
+  const gk=document.getElementById('input-gemini').value.trim();
+  const ok=document.getElementById('input-openai').value.trim();
+  if(ck)localStorage.setItem('board_claude_key',ck);
+  if(gk)localStorage.setItem('board_gemini_key',gk);
+  if(ok)localStorage.setItem('board_openai_key',ok);
+  checkWarnBanner();
+  closeSettings();
+}
+
+function checkWarnBanner(){
+  const k=getKeys();
+  const missing=!k.claude||!k.gemini||!k.openai;
+  document.getElementById('warnBanner').classList.toggle('visible',missing);
+}
+
+// Init
+checkWarnBanner();
+
+const SYS=`你是James的AI董事會成員。James是台灣半導體工程師，正在轉型為全職內容創作者和被動收入投資者。回答請用繁體中文，簡潔直接，條列重點。`;
+const P={
+  claude:SYS+'\n你的角色：首席研究官(CRO)。專注精準審查、風險識別、邏輯漏洞偵測。',
+  gemini:SYS+'\n你的角色：首席數據官(CSO)。專注數據結構化、市場資料彙整、量化分析。',
+  gpt:SYS+'\n你的角色：財務風控長(CFO)。專注財務建模、現金流分析、反駁假設。'
+};
+
+async function callClaude(q){
+  const k=getKeys().claude;
+  if(!k)throw new Error('Claude API Key 未設定');
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,system:P.claude,messages:[{role:'user',content:q}]})});
+  const d=await r.json();if(d.error)throw new Error(d.error.message);return d.content[0].text;
+}
+
+async function callGemini(q){
+  const k=getKeys().gemini;
+  if(!k)throw new Error('Gemini API Key 未設定');
+  const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${k}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_instruction:{parts:[{text:P.gemini}]},contents:[{parts:[{text:q}]}]})});
+  const d=await r.json();if(d.error)throw new Error(d.error.message);return d.candidates[0].content.parts[0].text;
+}
+
+async function callGPT(q){
+  const k=getKeys().openai;
+  if(!k)throw new Error('OpenAI API Key 未設定');
+  const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${k}`},body:JSON.stringify({model:'gpt-4o-mini',max_tokens:1000,messages:[{role:'system',content:P.gpt},{role:'user',content:q}]})});
+  const d=await r.json();if(d.error)throw new Error(d.error.message);return d.choices[0].message.content;
+}
+
+async function callSynthesis(q,c,g,o){
+  const k=getKeys().claude;
+  const prompt=`問題：${q}\n\nClaude-CRO：${c}\n\nGemini-CSO：${g}\n\nGPT-CFO：${o}\n\n請做三方分歧分析：1.三方共識點 2.三方分歧點 3.給CEO的一句決策建議`;
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:800,system:'你是James的AI董事會主持人，綜合三方意見給CEO決策參考。用繁體中文，簡潔有力。',messages:[{role:'user',content:prompt}]})});
+  const d=await r.json();if(d.error)throw new Error(d.error.message);return d.content[0].text;
+}
+
+function setCard(id,content,isError=false){
+  const el=document.getElementById(`body-${id}`);
+  el.innerHTML=isError?`<div class="error-text">⚠ ${content}</div>`:content.replace(/\n/g,'<br>');
+}
+function showCard(id){document.getElementById(`card-${id}`).classList.add('visible');}
+
+async function askAll(){
+  const q=document.getElementById('question').value.trim();
+  if(!q)return;
+  const k=getKeys();
+  if(!k.claude||!k.gemini||!k.openai){openSettings();return;}
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true;
+  document.getElementById('statusBar').classList.add('visible');
+  document.getElementById('divider').style.display='none';
+  ['claude','gemini','gpt','synthesis'].forEach(id=>{
+    showCard(id);
+    document.getElementById(`body-${id}`).innerHTML='<div class="loading"><div class="spinner"></div>分析中...</div>';
+  });
+  document.getElementById('statusText').textContent='三位顧問同步分析中...';
+  const[cr,gr,or_]=await Promise.allSettled([callClaude(q),callGemini(q),callGPT(q)]);
+  const cv=cr.status==='fulfilled'?cr.value:null;
+  const gv=gr.status==='fulfilled'?gr.value:null;
+  const ov=or_.status==='fulfilled'?or_.value:null;
+  if(cv)setCard('claude',cv);else setCard('claude',cr.reason?.message||'連線失敗',true);
+  if(gv)setCard('gemini',gv);else setCard('gemini',gr.reason?.message||'連線失敗',true);
+  if(ov)setCard('gpt',ov);else setCard('gpt',or_.reason?.message||'連線失敗',true);
+  document.getElementById('statusText').textContent='彙整三方意見...';
+  document.getElementById('divider').style.display='flex';
+  if(cv&&gv&&ov){
+    try{const s=await callSynthesis(q,cv,gv,ov);setCard('synthesis',s);}
+    catch(e){setCard('synthesis',e.message,true);}
+  }else{setCard('synthesis','部分顧問回應失敗，無法完成三方分析',true);}
+  document.getElementById('statusBar').classList.remove('visible');
+  btn.disabled=false;
+}
+</script>
+
+</body></html>
