@@ -133,8 +133,15 @@ async function callGPT(q){
 
 async function callSynthesis(q,c,g,o){
   const k=getKeys().claude;
-  const prompt=`問題：${q}\n\nClaude-CRO：${c}\n\nGemini-CSO：${g}\n\nGPT-CFO：${o}\n\n請做三方分歧分析：1.三方共識點 2.三方分歧點 3.給CEO的一句決策建議`;
-  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:800,system:'你是James的AI董事會主持人，綜合三方意見給CEO決策參考。用繁體中文，簡潔有力。',messages:[{role:'user',content:prompt}]})});
+  const parts=[];
+  if(c)parts.push(`Claude-CRO：${c}`);
+  if(g)parts.push(`Gemini-CSO：${g}`);
+  if(o)parts.push(`GPT-CFO：${o}`);
+  const missing=[];
+  if(!c)missing.push('Claude');if(!g)missing.push('Gemini');if(!o)missing.push('GPT');
+  const note=missing.length?`（注意：${missing.join('、')}本次未回應，以下為${3-missing.length}方分析）`:'';
+  const prompt=`問題：${q}\n\n${parts.join('\n\n')}\n\n請做分歧分析${note}：1.共識點 2.分歧點 3.給CEO的一句決策建議`;
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:800,system:'你是James的AI董事會主持人，綜合各方意見給CEO決策參考。用繁體中文，簡潔有力。',messages:[{role:'user',content:prompt}]})});
   const d=await r.json();if(d.error)throw new Error(d.error.message);return d.content[0].text;
 }
 
@@ -167,10 +174,10 @@ async function askAll(){
   if(ov)setCard('gpt',ov);else setCard('gpt',or_.reason?.message||'連線失敗',true);
   document.getElementById('statusText').textContent='彙整三方意見...';
   document.getElementById('divider').style.display='flex';
-  if(cv&&gv&&ov){
+  const successCount=[cv,gv,ov].filter(Boolean).length;if(successCount>=2){
     try{const s=await callSynthesis(q,cv,gv,ov);setCard('synthesis',s);}
     catch(e){setCard('synthesis',e.message,true);}
-  }else{setCard('synthesis','部分顧問回應失敗，無法完成三方分析',true);}
+  }else{setCard('synthesis','至少需要兩位顧問回應才能進行分析',true);}
   document.getElementById('statusBar').classList.remove('visible');
   btn.disabled=false;
 }
