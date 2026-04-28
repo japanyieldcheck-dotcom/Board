@@ -243,7 +243,7 @@ function saveRoundToHistory(roundNum,topic,responses){
   try{localStorage.setItem('board_last_session',JSON.stringify({topic:sessionRounds[0]?.topic,rounds:sessionRounds}));}catch(e){}
 }
 
-function renderRoundInHistory(roundNum,topic,cv,gv,ov,sv){
+function br(s){return s?s.split("\n").join("<br>"):"";}function renderRoundInHistory(roundNum,topic,cv,gv,ov,sv){
   const hist=document.getElementById('roundHistory');
   const div=document.createElement('div');
   div.className='round-container';
@@ -255,14 +255,10 @@ function renderRoundInHistory(roundNum,topic,cv,gv,ov,sv){
       <span class="round-topic">${shortTopic}</span>
     </div>
     <div class="round-content">
-      ${cv?`<div style="padding:12px 16px;border-bottom:1px solid var(--border)"><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--claude);margin-bottom:6px">CLAUDE — CRO</div><div style="font-size:13px;line-height:1.7;color:var(--text-dim)">${cv.replace(/
-/g,'<br>')}</div></div>`:''}
-      ${gv?`<div style="padding:12px 16px;border-bottom:1px solid var(--border)"><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--gemini);margin-bottom:6px">GEMINI — CSO</div><div style="font-size:13px;line-height:1.7;color:var(--text-dim)">${gv.replace(/
-/g,'<br>')}</div></div>`:''}
-      ${ov?`<div style="padding:12px 16px;border-bottom:1px solid var(--border)"><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--gpt);margin-bottom:6px">CHATGPT — CFO</div><div style="font-size:13px;line-height:1.7;color:var(--text-dim)">${ov.replace(/
-/g,'<br>')}</div></div>`:''}
-      ${sv?`<div style="padding:12px 16px;background:rgba(200,169,110,0.03)"><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--accent-gold);margin-bottom:6px">分歧分析</div><div style="font-size:13px;line-height:1.7;color:var(--text)">${sv.replace(/
-/g,'<br>')}</div></div>`:''}
+      ${cv?`<div style="padding:12px 16px;border-bottom:1px solid var(--border)"><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--claude);margin-bottom:6px">CLAUDE — CRO</div><div style="font-size:13px;line-height:1.7;color:var(--text-dim)">${br(cv)}</div></div>`:''}
+      ${gv?`<div style="padding:12px 16px;border-bottom:1px solid var(--border)"><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--gemini);margin-bottom:6px">GEMINI — CSO</div><div style="font-size:13px;line-height:1.7;color:var(--text-dim)">${br(gv)}</div></div>`:''}
+      ${ov?`<div style="padding:12px 16px;border-bottom:1px solid var(--border)"><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--gpt);margin-bottom:6px">CHATGPT — CFO</div><div style="font-size:13px;line-height:1.7;color:var(--text-dim)">${br(ov)}</div></div>`:''}
+      ${sv?`<div style="padding:12px 16px;background:rgba(200,169,110,0.03)"><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--accent-gold);margin-bottom:6px">分歧分析</div><div style="font-size:13px;line-height:1.7;color:var(--text)">${br(sv)}</div></div>`:''}
     </div>`;
   hist.appendChild(div);
 }
@@ -340,11 +336,7 @@ async function askFollowup(){
 Claude-CRO：${r.responses.cv||'未回應'}
 Gemini-CSO：${r.responses.gv||'未回應'}
 GPT-CFO：${r.responses.ov||'未回應'}
-分歧分析：${r.responses.sv||'未完成'}`).join('
-
----
-
-');
+分歧分析：${r.responses.sv||'未完成'}`).join('\n\n---\n\n');
   const q=`【歷史記錄】
 ${prevContext}
 
