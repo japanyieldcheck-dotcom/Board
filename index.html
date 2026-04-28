@@ -4,12 +4,23 @@
 .settings-btn{position:fixed;bottom:20px;left:20px;width:40px;height:40px;border-radius:50%;background:var(–surface);border:1px solid var(–border);color:var(–text-dim);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color 0.2s}.settings-btn:hover{border-color:var(–accent-gold)}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}.modal-overlay.visible{display:flex}.modal{background:var(–surface);border:1px solid var(–border);border-radius:16px;padding:24px;width:100%;max-width:480px}.modal-title{font-family:‘Space Mono’,monospace;font-size:12px;letter-spacing:3px;color:var(–accent-gold);text-transform:uppercase;margin-bottom:20px}.key-field{margin-bottom:16px}.key-label{font-family:‘Space Mono’,monospace;font-size:10px;letter-spacing:2px;color:var(–text-dim);text-transform:uppercase;margin-bottom:6px}.key-input{width:100%;background:var(–bg);border:1px solid var(–border);border-radius:8px;color:var(–text);font-family:‘Space Mono’,monospace;font-size:11px;padding:10px 12px;outline:none;transition:border-color 0.2s}.key-input:focus{border-color:var(–accent-gold)}.key-input::placeholder{color:var(–text-dim);font-size:10px}.modal-actions{display:flex;gap:10px;margin-top:20px}.btn-save{flex:1;padding:12px;background:var(–accent-gold);color:var(–bg);border:none;border-radius:8px;font-family:‘Space Mono’,monospace;font-size:12px;font-weight:700;letter-spacing:2px;cursor:pointer}.btn-cancel{padding:12px 16px;background:transparent;color:var(–text-dim);border:1px solid var(–border);border-radius:8px;font-family:‘Space Mono’,monospace;font-size:12px;cursor:pointer}.key-status{font-family:‘Space Mono’,monospace;font-size:10px;margin-top:4px}.key-status.ok{color:var(–accent-green)}.key-status.missing{color:#f87171}
 .warn-banner{background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-family:‘Space Mono’,monospace;font-size:11px;color:#f87171;display:none}.warn-banner.visible{display:block}
+.memory-section{background:var(–surface);border:1px solid var(–accent-gold);border-radius:12px;padding:16px;margin-bottom:16px;opacity:0.85}.memory-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}.memory-label{font-family:‘Space Mono’,monospace;font-size:10px;letter-spacing:2px;color:var(–accent-gold);text-transform:uppercase}.memory-toggle{font-family:‘Space Mono’,monospace;font-size:10px;color:var(–text-dim)}.memory-body{margin-top:12px}.memory-body textarea{min-height:120px;font-size:12px;font-family:‘Space Mono’,monospace}.memory-save{margin-top:8px;padding:8px 16px;background:transparent;border:1px solid var(–accent-gold);color:var(–accent-gold);border-radius:6px;font-family:‘Space Mono’,monospace;font-size:10px;letter-spacing:1px;cursor:pointer}.memory-save:hover{background:rgba(200,169,110,0.1)}.memory-status{font-family:‘Space Mono’,monospace;font-size:10px;color:var(–accent-green);margin-left:10px;opacity:0}
 </style></head><body>
 
 <div class="warn-banner" id="warnBanner">⚠ API Key 未設定，請點左下角 ⚙ 輸入金鑰</div>
 
 <div class="header"><div class="header-label">James's</div><h1>AI 董事會</h1><div class="header-sub">三方交叉驗證系統</div></div>
 <div class="roles"><span class="role-badge you">👑 YOU — CEO</span><span class="role-badge claude">⚖️ CLAUDE — CRO</span><span class="role-badge gemini">📊 GEMINI — CSO</span><span class="role-badge gpt">🛡️ GPT — CFO</span></div>
+<div class="memory-section" id="memorySection">
+  <div class="memory-header" onclick="toggleMemory()">
+    <div class="memory-label">🧠 董事會記憶 — 背景脈絡</div>
+    <div style="display:flex;align-items:center"><span class="memory-status" id="memorySavedStatus">已儲存</span><span class="memory-toggle" id="memoryToggle">▼ 展開</span></div>
+  </div>
+  <div class="memory-body" id="memoryBody" style="display:none">
+    <textarea id="memoryText" placeholder="貼入背景簡報：身份、財務狀況、當前優先任務、決策原則&#10;&#10;此內容會自動帶入三個AI的分析context中"></textarea>
+    <button class="memory-save" onclick="saveMemory()">💾 儲存記憶</button>
+  </div>
+</div>
 <div class="input-section"><div class="input-label">📋 議題輸入</div><textarea id="question" placeholder="輸入你想讓董事會討論的問題&#10;例如：這個東京物件的投資邏輯是否成立？"></textarea><button class="btn-submit" id="submitBtn" onclick="askAll()">召開董事會 →</button></div>
 <div class="status-bar" id="statusBar"><div class="status-dot"></div><span id="statusText">董事會進行中...</span></div>
 <div class="responses">
@@ -100,34 +111,59 @@ function checkWarnBanner(){
   document.getElementById('warnBanner').classList.toggle('visible',missing);
 }
 
+// Memory functions
+function toggleMemory(){
+  const body=document.getElementById('memoryBody');
+  const toggle=document.getElementById('memoryToggle');
+  const isHidden=body.style.display==='none';
+  body.style.display=isHidden?'block':'none';
+  toggle.textContent=isHidden?'▲ 收起':'▼ 展開';
+}
+function saveMemory(){
+  const val=document.getElementById('memoryText').value;
+  localStorage.setItem('board_memory',val);
+  const status=document.getElementById('memorySavedStatus');
+  status.style.opacity='1';
+  setTimeout(()=>status.style.opacity='0',2000);
+}
+function getMemory(){return localStorage.getItem('board_memory')||'';}
+function loadMemory(){
+  const val=getMemory();
+  if(val){
+    document.getElementById('memoryText').value=val;
+    document.getElementById('memorySavedStatus').style.opacity='0';
+  }
+}
+
 // Init
+loadMemory();
 checkWarnBanner();
 
-const SYS=`你是James的AI董事會成員。James是台灣半導體工程師，正在轉型為全職內容創作者和被動收入投資者。回答請用繁體中文，簡潔直接，條列重點。`;
-const P={
+function getSYS(){const mem=getMemory();return`你是James的AI董事會成員。回答請用繁體中文，簡潔直接，條列重點。${mem?'\n\n【背景記憶】\n'+mem:''}`}
+function getP(){const SYS=getSYS();return{
   claude:SYS+'\n你的角色：首席研究官(CRO)。專注精準審查、風險識別、邏輯漏洞偵測。',
   gemini:SYS+'\n你的角色：首席數據官(CSO)。專注數據結構化、市場資料彙整、量化分析。',
   gpt:SYS+'\n你的角色：財務風控長(CFO)。專注財務建模、現金流分析、反駁假設。'
-};
+};}
 
 async function callClaude(q){
   const k=getKeys().claude;
   if(!k)throw new Error('Claude API Key 未設定');
-  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,system:P.claude,messages:[{role:'user',content:q}]})});
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,system:getP().claude,messages:[{role:'user',content:q}]})});
   const d=await r.json();if(d.error)throw new Error(d.error.message);return d.content[0].text;
 }
 
 async function callGemini(q){
   const k=getKeys().gemini;
   if(!k)throw new Error('Gemini API Key 未設定');
-  const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${k}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:P.gemini+'\n\n'+q}]}]})});
+  const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${k}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:getP().gemini+'\n\n'+q}]}]})});
   const d=await r.json();if(d.error)throw new Error(d.error.message);return d.candidates[0].content.parts[0].text;
 }
 
 async function callGPT(q){
   const k=getKeys().openai;
   if(!k)throw new Error('OpenAI API Key 未設定');
-  const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${k}`},body:JSON.stringify({model:'gpt-4o-mini',max_tokens:1000,messages:[{role:'system',content:P.gpt},{role:'user',content:q}]})});
+  const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${k}`},body:JSON.stringify({model:'gpt-4o-mini',max_tokens:1000,messages:[{role:'system',content:getP().gpt},{role:'user',content:q}]})});
   const d=await r.json();if(d.error)throw new Error(d.error.message);return d.choices[0].message.content;
 }
 
