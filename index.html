@@ -6,6 +6,19 @@
 .textarea-expanded{min-height:400px!important}.expand-btn{background:transparent;border:1px solid var(–border);color:var(–text-dim);font-family:‘Space Mono’,monospace;font-size:9px;letter-spacing:1px;cursor:pointer;padding:4px 10px;border-radius:4px;margin-left:auto;transition:all 0.2s}.expand-btn:hover{border-color:var(–accent-gold);color:var(–accent-gold)}
 .warn-banner{background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-family:‘Space Mono’,monospace;font-size:11px;color:#f87171;display:none}.warn-banner.visible{display:block}
 .memory-section{background:var(–surface);border:1px solid var(–accent-gold);border-radius:12px;padding:16px;margin-bottom:16px;opacity:0.85}.memory-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}.memory-label{font-family:‘Space Mono’,monospace;font-size:10px;letter-spacing:2px;color:var(–accent-gold);text-transform:uppercase}.memory-toggle{font-family:‘Space Mono’,monospace;font-size:10px;color:var(–text-dim)}.memory-body{margin-top:12px}.memory-body textarea{min-height:120px;font-size:12px;font-family:‘Space Mono’,monospace}.memory-save{margin-top:8px;padding:8px 16px;background:transparent;border:1px solid var(–accent-gold);color:var(–accent-gold);border-radius:6px;font-family:‘Space Mono’,monospace;font-size:10px;letter-spacing:1px;cursor:pointer}.memory-save:hover{background:rgba(200,169,110,0.1)}.memory-status{font-family:‘Space Mono’,monospace;font-size:10px;color:var(–accent-green);margin-left:10px;opacity:0}
+.reply-block{margin-bottom:12px}
+.reply-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.reply-label{font-family:‘Space Mono’,monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700}
+.reply-label.claude{color:var(–claude)}
+.reply-label.gemini{color:var(–gemini)}
+.reply-label.gpt{color:var(–gpt)}
+.reply-label.note{color:var(–text-dim)}
+.paste-btn{background:transparent;border:1px solid var(–border);color:var(–text-dim);font-family:‘Space Mono’,monospace;font-size:9px;letter-spacing:1px;cursor:pointer;padding:3px 8px;border-radius:4px;transition:all 0.2s}
+.paste-btn:hover{border-color:var(–accent-gold);color:var(–accent-gold)}
+.paste-btn.pasted{color:var(–accent-green);border-color:var(–accent-green)}
+.reply-textarea{width:100%;background:var(–bg);border:1px solid var(–border);border-radius:8px;color:var(–text);font-family:‘Noto Serif TC’,serif;font-size:13px;padding:10px 12px;resize:none;min-height:80px;line-height:1.6;outline:none;transition:border-color 0.2s}
+.reply-textarea:focus{border-color:var(–accent-gold)}
+.reply-textarea::placeholder{color:var(–text-dim)}
 .retry-btn{background:transparent;border:1px solid var(–text-dim);color:var(–text-dim);font-family:‘Space Mono’,monospace;font-size:9px;letter-spacing:1px;cursor:pointer;padding:3px 8px;border-radius:4px;margin-left:8px;transition:all 0.2s}.retry-btn:hover{border-color:var(–accent-gold);color:var(–accent-gold)}
 .copy-btn{background:transparent;border:none;color:var(–text-dim);font-family:‘Space Mono’,monospace;font-size:9px;letter-spacing:1px;cursor:pointer;padding:2px 6px;border-radius:4px;transition:color 0.2s}.copy-btn:hover{color:var(–accent-gold)}.copy-btn.copied{color:var(–accent-green)}
 .copy-btn{background:transparent;border:none;color:var(–text-dim);font-family:‘Space Mono’,monospace;font-size:9px;letter-spacing:1px;cursor:pointer;padding:2px 6px;border-radius:4px;transition:color 0.2s}.copy-btn:hover{color:var(–accent-gold)}.copy-btn.copied{color:var(–accent-green)}
@@ -27,7 +40,7 @@
 <div class="warn-banner" id="warnBanner">⚠ API Key 未設定，請點左下角 ⚙ 輸入金鑰</div>
 
 <div class="header"><div class="header-label">James's</div><h1>AI 董事會</h1><div class="header-sub">三方交叉驗證系統</div></div>
-<div class="roles"><span class="role-badge you">👑 YOU — CEO</span><span class="role-badge claude">⚖️ CLAUDE — CRO</span><span class="role-badge gemini">📊 GEMINI — CSO</span><span class="role-badge gpt">🛡️ GPT — CFO</span></div>
+<div class="roles"><span class="role-badge you">👑 YOU — CEO</span><span class="role-badge claude">⚖️ CLAUDE — CRO</span><span class="role-badge gemini">📊 GEMINI — CSI</span><span class="role-badge gpt">🛡️ GPT — CFO</span></div>
 <div class="memory-section" id="memorySection">
   <div class="memory-header" onclick="toggleMemory()">
     <div class="memory-label">🧠 董事會記憶 — 背景脈絡</div>
@@ -42,7 +55,7 @@
 <div class="status-bar" id="statusBar"><div class="status-dot"></div><span id="statusText">董事會進行中...</span></div>
 <div class="responses">
   <div class="response-card card-claude" id="card-claude"><div class="card-header"><div class="card-dot"></div><div class="card-title">Claude</div><div class="card-role">首席研究官 · 風險審查</div><button class="copy-btn" onclick="copyCard('claude',this)">複製</button></div><div class="card-body" id="body-claude"></div></div>
-  <div class="response-card card-gemini" id="card-gemini"><div class="card-header"><div class="card-dot"></div><div class="card-title">Gemini</div><div class="card-role">首席數據官 · 資料整合</div><button class="copy-btn" onclick="copyCard('gemini',this)">複製</button></div><div class="card-body" id="body-gemini"></div></div>
+  <div class="response-card card-gemini" id="card-gemini"><div class="card-header"><div class="card-dot"></div><div class="card-title">Gemini</div><div class="card-role">策略情報長 · 市場方向</div><button class="copy-btn" onclick="copyCard('gemini',this)">複製</button></div><div class="card-body" id="body-gemini"></div></div>
   <div class="response-card card-gpt" id="card-gpt"><div class="card-header"><div class="card-dot"></div><div class="card-title">ChatGPT</div><div class="card-role">財務風控長 · 數字審查</div><button class="copy-btn" onclick="copyCard('gpt',this)">複製</button></div><div class="card-body" id="body-gpt"></div></div>
   <div class="divider" id="divider" style="display:none"><div class="divider-line"></div><div class="divider-text">董事長綜合裁決</div><div class="divider-line"></div></div>
   <div class="response-card card-synthesis" id="card-synthesis"><div class="card-header"><div class="card-dot"></div><div class="card-title">三方分歧分析</div><div class="card-role">供 CEO 決策參考</div><button class="retry-btn" id="retryBtn" onclick="retrySynthesis()" style="display:none">↻ 重試</button><button class="copy-btn" onclick="copyCard('synthesis',this)">複製</button></div><div class="card-body" id="body-synthesis"></div></div>
@@ -51,11 +64,43 @@
 <!-- Follow-up section -->
 
 <div class="followup-section" id="followupSection">
-  <div class="followup-label">💬 第2輪補充 — 貼入各APP回覆</div>
-  <div class="followup-hint">將三個AI APP的回覆貼入下方，董事會將結合第1輪結論再分析一次</div>
-  <textarea id="followupText" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Noto Serif TC,serif;font-size:14px;padding:12px;resize:none;min-height:120px;line-height:1.6;outline:none;transition:border-color 0.2s" placeholder="例如：ChatGPT說...&#10;Gemini說...&#10;我的補充意見是..."></textarea>
-  <button class="btn-followup" id="followupBtn" onclick="askFollowup()">召開第2輪董事會 →</button>
-  <button class="btn-new-session" onclick="newSession()">🔄 開新議題</button>
+  <div class="followup-label" id="followupLabel">💬 第2輪補充 — 貼入各APP回覆</div>
+  <div class="followup-hint" id="followupHint">將三個AI APP的回覆分別貼入下方各欄位</div>
+
+  <div class="reply-block">
+    <div class="reply-header">
+      <span class="reply-label claude">⚖️ Claude APP 回覆（CRO）</span>
+      <button class="paste-btn" onclick="pasteFromClipboard('replyClauде',this)">📋 貼上</button>
+    </div>
+    <textarea class="reply-textarea" id="replyClaude" placeholder="貼入Claude APP的回覆..."></textarea>
+  </div>
+
+  <div class="reply-block">
+    <div class="reply-header">
+      <span class="reply-label gemini">📊 Gemini APP 回覆（CSI）</span>
+      <button class="paste-btn" onclick="pasteFromClipboard('replyGemini',this)">📋 貼上</button>
+    </div>
+    <textarea class="reply-textarea" id="replyGemini" placeholder="貼入Gemini APP的回覆..."></textarea>
+  </div>
+
+  <div class="reply-block">
+    <div class="reply-header">
+      <span class="reply-label gpt">🛡️ ChatGPT APP 回覆（CFO）</span>
+      <button class="paste-btn" onclick="pasteFromClipboard('replyGPT',this)">📋 貼上</button>
+    </div>
+    <textarea class="reply-textarea" id="replyGPT" placeholder="貼入ChatGPT APP的回覆..."></textarea>
+  </div>
+
+  <div class="reply-block">
+    <div class="reply-header">
+      <span class="reply-label note">📝 補充意見（選填）</span>
+    </div>
+    <textarea class="reply-textarea" id="replyNote" placeholder="你的補充意見或新問題（選填）..."></textarea>
+  </div>
+
+<button class="btn-followup" id="followupBtn" onclick="askFollowup()">召開第2輪董事會 →</button>
+<button class="btn-new-session" onclick="newSession()">🔄 開新議題</button>
+
 </div>
 
 <!-- Round history -->
@@ -170,11 +215,11 @@ function loadMemory(){
 loadMemory();
 checkWarnBanner();
 
-function getSYS(){const mem=getMemory();return`你是James的AI董事會成員。回答請用繁體中文，簡潔直接，條列重點。\n\n【分析原則—強制執行】\n1.有數據：直接引用，標注來源\n2.無數據：必須標注「這是推論，依據是X，信心等級：高/中/低」\n3.禁止將推論當事實陳述\n4.分析角度：以有10年台灣財務實戰經驗的專業顧問視角，不接受模糊建議\n5.每個建議必須可執行，給出具體行動步驟${mem?'\n\n【背景記憶】\n'+mem:''}`}
+function getSYS(){const mem=getMemory();return`你是James的AI董事會成員。回答請用繁體中文，簡潔直接，條列重點。\n\n【分析原則—強制執行】\n1.有數據：直接引用，標注來源\n2.無數據：必須標注「這是推論，依據是X，信心等級：高/中/低」\n3.禁止將推論當事實陳述\n4.所有結論必須區分：事實／假設／建議\n5.分析角度：以有10年台灣財務實戰經驗的專業顧問視角，不接受模糊建議\n6.每個建議必須可執行，給出具體行動步驟\n\n【CSI數據驗證條款】\nGemini(CSI)提供的任何數字、報酬率、趨勢資料、平台數據，不得直接作為決策依據。必須經過以下其中一種方式交叉驗證：CFO重新計算、外部資料查證、James自有紀錄確認、或CRO從轉換結果反向驗證。無法驗證的資料只能標記為「假設」，不能標記為「事實」。${mem?'\n\n【背景記憶】\n'+mem:''}`}
 function getP(){const SYS=getSYS();return{
   claude:SYS+'\n你的角色：首席研究官(CRO)。專注精準審查、風險識別、邏輯漏洞偵測。每個風險點必須說明：觸發條件、影響程度、緩解方案。',
-  gemini:SYS+'\n你的角色：首席數據官(CSO)。專注數據結構化、市場資料彙整、量化分析。所有數字必須標注來源，無來源數字不得引用。',
-  gpt:SYS+'\n你的角色：財務風控長(CFO)。專注財務建模、現金流分析、反駁假設。必須提出至少一個反對意見，並說明最壞情境。'
+  gemini:SYS+'\n你的角色：策略情報長(CSI)。專注策略情報、市場方向分析、替代路線評估、轉型選項。站在「如果這條路不通，下一條更可能成功的路是什麼」的角度。【重要限制】你提供的所有數字、報酬率、市場規模、平台趨勢數據，只能標記為「假設」，必須經CFO或外部資料交叉驗證後才能升級為事實。',
+  gpt:SYS+'\n你的角色：財務風控長(CFO)。專注財務建模、現金流分析、反駁假設、數據交叉驗證。必須提出至少一個反對意見，並說明最壞情境。當CSI(Gemini)提供數字或市場數據時，你有責任重新計算或質疑其可信度。'
 };}
 
 async function callClaude(q){
@@ -202,18 +247,33 @@ async function callSynthesis(q,c,g,o){
   const k=getKeys().claude;
   const parts=[];
   if(c)parts.push(`Claude-CRO：${c}`);
-  if(g)parts.push(`Gemini-CSO：${g}`);
+  if(g)parts.push(`Gemini-CSI：${g}`);
   if(o)parts.push(`GPT-CFO：${o}`);
   const missing=[];
   if(!c)missing.push('Claude');if(!g)missing.push('Gemini');if(!o)missing.push('GPT');
   const note=missing.length?`（注意：${missing.join('、')}本次未回應，以下為${3-missing.length}方分析）`:'';
-  const prompt=`問題：${q}\n\n${parts.join('\n\n')}\n\n請做分歧分析${note}，角色：Claude=CRO首席研究官、Gemini=CSO首席數據官、GPT=CFO財務風控長。格式：\n1.【共識點】三方一致結論（標注信心等級：高/中/低）\n2.【分歧點】列出各董事（CRO/CSO/CFO）的不同意見及依據\n3.【推論警示】標明哪位董事（CRO/CSO/CFO）的哪個結論是推論非數據支撐\n4.【共識程度】本輪整體共識程度（高/中/低）及原因\n5.【CEO建議】一句話+具體執行步驟\n6.【建議下一輪】是/否+原因`;
+  const prompt=`問題：${q}\n\n${parts.join('\n\n')}\n\n請做分歧分析${note}，角色：Claude=CRO首席研究官、Gemini=CSI策略情報長、GPT=CFO財務風控長。格式：\n1.【共識點】三方一致結論（標注信心等級：高/中/低）\n2.【分歧點】列出各董事（CRO/CSO/CFO）的不同意見及依據\n3.【推論警示】標明哪位董事（CRO/CSO/CFO）的哪個結論是推論非數據支撐\n4.【共識程度】本輪整體共識程度（高/中/低）及原因\n5.【CEO建議】一句話+具體執行步驟\n6.【建議下一輪】是/否+原因`;
   const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1200,system:'你是James的AI董事會主持人。每個結論必須區分數據支撐與推論，推論需標注信心等級（高/中/低）。用繁體中文，結構化輸出。',messages:[{role:'user',content:prompt}]})});
   const d=await r.json();if(d.error)throw new Error(d.error.message);return d.content[0].text;
 }
 
 // Store last session data for retry
 let lastSessionData={q:null,cv:null,gv:null,ov:null};
+
+async function pasteFromClipboard(targetId, btn){
+  try{
+    const text = await navigator.clipboard.readText();
+    document.getElementById(targetId).value = text;
+    btn.textContent = '✓ 已貼上';
+    btn.classList.add('pasted');
+    setTimeout(()=>{btn.textContent='📋 貼上';btn.classList.remove('pasted');}, 2000);
+  }catch(e){
+    // Fallback: focus the textarea so user can paste manually
+    document.getElementById(targetId).focus();
+    btn.textContent = '手動貼上';
+    setTimeout(()=>{btn.textContent='📋 貼上';}, 2000);
+  }
+}
 
 async function retrySynthesis(){
   const {q,cv,gv,ov}=lastSessionData;
@@ -349,7 +409,21 @@ async function askAll(){
 }
 
 async function askFollowup(){
-  const followup=document.getElementById('followupText').value.trim();
+  const rClaude=document.getElementById('replyClaude').value.trim();
+  const rGemini=document.getElementById('replyGemini').value.trim();
+  const rGPT=document.getElementById('replyGPT').value.trim();
+  const rNote=document.getElementById('replyNote').value.trim();
+  if(!rClaude&&!rGemini&&!rGPT&&!rNote){alert('請至少貼入一個APP的回覆');return;}
+  const parts=[];
+  if(rClaude)parts.push(`【Claude APP回覆(CRO)】
+${rClaude}`);
+  if(rGemini)parts.push(`【Gemini APP回覆(CSI)】
+${rGemini}`);
+  if(rGPT)parts.push(`【ChatGPT APP回覆(CFO)】
+${rGPT}`);
+  if(rNote)parts.push(`【CEO補充意見】
+${rNote}`);
+  const followup=parts.join('\n\n');
   if(!followup)return;
   const btn=document.getElementById('followupBtn');
   btn.disabled=true;
@@ -358,7 +432,7 @@ async function askFollowup(){
   const prevContext=sessionRounds.map(r=>`【第${r.round}輪】
 議題：${r.topic}
 Claude-CRO：${r.responses.cv||'未回應'}
-Gemini-CSO：${r.responses.gv||'未回應'}
+Gemini-CSI：${r.responses.gv||'未回應'}
 GPT-CFO：${r.responses.ov||'未回應'}
 分歧分析：${r.responses.sv||'未完成'}`).join('\n\n---\n\n');
   const q=`【歷史記錄】
@@ -371,7 +445,10 @@ ${followup}
 
 請基於以上所有輪次的討論，提供新一輪分析。`;
 
-  document.getElementById('followupText').value='';
+  document.getElementById('replyClaude').value='';
+  document.getElementById('replyGemini').value='';
+  document.getElementById('replyGPT').value='';
+  document.getElementById('replyNote').value='';
   await runSession(q,true);
   btn.disabled=false;
 }
