@@ -3,6 +3,7 @@
 /* Settings */
 .settings-btn{position:fixed;bottom:20px;left:20px;width:40px;height:40px;border-radius:50%;background:var(–surface);border:1px solid var(–border);color:var(–text-dim);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color 0.2s}.settings-btn:hover{border-color:var(–accent-gold)}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}.modal-overlay.visible{display:flex}.modal{background:var(–surface);border:1px solid var(–border);border-radius:16px;padding:24px;width:100%;max-width:480px}.modal-title{font-family:‘Space Mono’,monospace;font-size:12px;letter-spacing:3px;color:var(–accent-gold);text-transform:uppercase;margin-bottom:20px}.key-field{margin-bottom:16px}.key-label{font-family:‘Space Mono’,monospace;font-size:10px;letter-spacing:2px;color:var(–text-dim);text-transform:uppercase;margin-bottom:6px}.key-input{width:100%;background:var(–bg);border:1px solid var(–border);border-radius:8px;color:var(–text);font-family:‘Space Mono’,monospace;font-size:11px;padding:10px 12px;outline:none;transition:border-color 0.2s}.key-input:focus{border-color:var(–accent-gold)}.key-input::placeholder{color:var(–text-dim);font-size:10px}.modal-actions{display:flex;gap:10px;margin-top:20px}.btn-save{flex:1;padding:12px;background:var(–accent-gold);color:var(–bg);border:none;border-radius:8px;font-family:‘Space Mono’,monospace;font-size:12px;font-weight:700;letter-spacing:2px;cursor:pointer}.btn-cancel{padding:12px 16px;background:transparent;color:var(–text-dim);border:1px solid var(–border);border-radius:8px;font-family:‘Space Mono’,monospace;font-size:12px;cursor:pointer}.key-status{font-family:‘Space Mono’,monospace;font-size:10px;margin-top:4px}.key-status.ok{color:var(–accent-green)}.key-status.missing{color:#f87171}
+.textarea-expanded{min-height:400px!important}.expand-btn{background:transparent;border:1px solid var(–border);color:var(–text-dim);font-family:‘Space Mono’,monospace;font-size:9px;letter-spacing:1px;cursor:pointer;padding:4px 10px;border-radius:4px;margin-left:auto;transition:all 0.2s}.expand-btn:hover{border-color:var(–accent-gold);color:var(–accent-gold)}
 .warn-banner{background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-family:‘Space Mono’,monospace;font-size:11px;color:#f87171;display:none}.warn-banner.visible{display:block}
 .memory-section{background:var(–surface);border:1px solid var(–accent-gold);border-radius:12px;padding:16px;margin-bottom:16px;opacity:0.85}.memory-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}.memory-label{font-family:‘Space Mono’,monospace;font-size:10px;letter-spacing:2px;color:var(–accent-gold);text-transform:uppercase}.memory-toggle{font-family:‘Space Mono’,monospace;font-size:10px;color:var(–text-dim)}.memory-body{margin-top:12px}.memory-body textarea{min-height:120px;font-size:12px;font-family:‘Space Mono’,monospace}.memory-save{margin-top:8px;padding:8px 16px;background:transparent;border:1px solid var(–accent-gold);color:var(–accent-gold);border-radius:6px;font-family:‘Space Mono’,monospace;font-size:10px;letter-spacing:1px;cursor:pointer}.memory-save:hover{background:rgba(200,169,110,0.1)}.memory-status{font-family:‘Space Mono’,monospace;font-size:10px;color:var(–accent-green);margin-left:10px;opacity:0}
 .copy-btn{background:transparent;border:none;color:var(–text-dim);font-family:‘Space Mono’,monospace;font-size:9px;letter-spacing:1px;cursor:pointer;padding:2px 6px;border-radius:4px;transition:color 0.2s}.copy-btn:hover{color:var(–accent-gold)}.copy-btn.copied{color:var(–accent-green)}
@@ -22,7 +23,7 @@
     <button class="memory-save" onclick="saveMemory()">💾 儲存記憶</button>
   </div>
 </div>
-<div class="input-section"><div class="input-label">📋 議題輸入</div><textarea id="question" placeholder="輸入你想讓董事會討論的問題&#10;例如：這個東京物件的投資邏輯是否成立？"></textarea><button class="btn-submit" id="submitBtn" onclick="askAll()">召開董事會 →</button></div>
+<div class="input-section"><div style="display:flex;align-items:center;margin-bottom:10px"><div class="input-label" style="margin-bottom:0">📋 議題輸入</div><button class="expand-btn" id="expandBtn" onclick="toggleExpand()">⛶ 展開</button></div><textarea id="question" placeholder="輸入你想讓董事會討論的問題&#10;例如：這個東京物件的投資邏輯是否成立？"></textarea><button class="btn-submit" id="submitBtn" onclick="askAll()">召開董事會 →</button></div>
 <div class="status-bar" id="statusBar"><div class="status-dot"></div><span id="statusText">董事會進行中...</span></div>
 <div class="responses">
   <div class="response-card card-claude" id="card-claude"><div class="card-header"><div class="card-dot"></div><div class="card-title">Claude</div><div class="card-role">首席研究官 · 風險審查</div><button class="copy-btn" onclick="copyCard('claude',this)">複製</button></div><div class="card-body" id="body-claude"></div></div>
@@ -182,6 +183,13 @@ async function callSynthesis(q,c,g,o){
   const d=await r.json();if(d.error)throw new Error(d.error.message);return d.content[0].text;
 }
 
+function toggleExpand(){
+  const ta=document.getElementById('question');
+  const btn=document.getElementById('expandBtn');
+  const isExpanded=ta.classList.contains('textarea-expanded');
+  if(isExpanded){ta.classList.remove('textarea-expanded');btn.textContent='⛶ 展開';}
+  else{ta.classList.add('textarea-expanded');btn.textContent='✕ 收合';}
+}
 function copyCard(id,btn){
   const el=document.getElementById('body-'+id);
   const text=el.innerText;
