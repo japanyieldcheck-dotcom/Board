@@ -211,9 +211,47 @@ function loadMemory(){
   }
 }
 
+// Session auto-save & restore
+function saveSession(){
+  try{localStorage.setItem('board_session',JSON.stringify({rounds:sessionRounds,round:currentRound,ts:Date.now()}));}catch(e){}
+}
+function restoreSession(){
+  try{
+    const raw=localStorage.getItem('board_session');
+    if(!raw)return;
+    const data=JSON.parse(raw);
+    if(!data.rounds||data.rounds.length===0)return;
+    const age=Math.round((Date.now()-data.ts)/60000);
+    const banner=document.createElement('div');
+    banner.id='restoreBanner';
+    banner.style.cssText='background:rgba(200,169,110,0.1);border:1px solid var(--accent-gold);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-family:Space Mono,monospace;font-size:11px;color:var(--accent-gold);display:flex;align-items:center;justify-content:space-between';
+    banner.innerHTML=`<span>📂 發現${age}分鐘前的會議記錄（${data.rounds.length}輪）</span><div style="display:flex;gap:8px"><button onclick="doRestore()" style="background:var(--accent-gold);color:var(--bg);border:none;border-radius:4px;font-family:Space Mono,monospace;font-size:10px;padding:4px 10px;cursor:pointer">恢復</button><button onclick="dismissRestore()" style="background:transparent;color:var(--text-dim);border:1px solid var(--border);border-radius:4px;font-family:Space Mono,monospace;font-size:10px;padding:4px 10px;cursor:pointer">忽略</button></div>`;
+    document.body.insertBefore(banner,document.body.firstChild);
+    window._pendingRestore=data;
+  }catch(e){}
+}
+function doRestore(){
+  const data=window._pendingRestore;
+  if(!data)return;
+  sessionRounds=data.rounds;
+  currentRound=data.round;
+  document.getElementById('roundHistory').innerHTML='';
+  sessionRounds.forEach(r=>renderRoundInHistory(r.round,r.topic,r.responses.cv,r.responses.gv,r.responses.ov,r.responses.sv));
+  const last=sessionRounds[sessionRounds.length-1];
+  if(last)lastSessionData={q:last.topic,cv:last.responses.cv,gv:last.responses.gv,ov:last.responses.ov};
+  document.getElementById('followupSection').style.display='block';
+  document.getElementById('followupLabel').textContent=`💬 第${currentRound+1}輪補充 — 貼入各APP回覆`;
+  dismissRestore();
+}
+function dismissRestore(){
+  const b=document.getElementById('restoreBanner');
+  if(b)b.remove();
+}
+
 // Init
 loadMemory();
 checkWarnBanner();
+restoreSession();
 
 function getSYS(){const mem=getMemory();return`你是James的AI董事會成員。回答請用繁體中文，簡潔直接，條列重點。\n\n【分析原則—強制執行】\n1.有數據：直接引用，標注來源\n2.無數據：必須標注「這是推論，依據是X，信心等級：高/中/低」\n3.禁止將推論當事實陳述\n4.所有結論必須區分：事實／假設／建議\n5.分析角度：以有10年台灣財務實戰經驗的專業顧問視角，不接受模糊建議\n6.每個建議必須可執行，給出具體行動步驟\n\n【CSI數據驗證條款】\nGemini(CSI)提供的任何數字、報酬率、趨勢資料、平台數據，不得直接作為決策依據。必須經過以下其中一種方式交叉驗證：CFO重新計算、外部資料查證、James自有紀錄確認、或CRO從轉換結果反向驗證。無法驗證的資料只能標記為「假設」，不能標記為「事實」。${mem?'\n\n【背景記憶】\n'+mem:''}`}
 function getP(){const SYS=getSYS();return{
@@ -322,6 +360,7 @@ function saveRoundToHistory(roundNum,topic,responses){
   // Save to localStorage
   const key='board_session_'+Date.now();
   try{localStorage.setItem('board_last_session',JSON.stringify({topic:sessionRounds[0]?.topic,rounds:sessionRounds}));}catch(e){}
+  saveSession();
 }
 
 function br(s){return s?s.split("\n").join("<br>"):"";}function renderRoundInHistory(roundNum,topic,cv,gv,ov,sv){
@@ -403,6 +442,7 @@ async function askAll(){
   currentRound=0;
   sessionRounds=[];
   document.getElementById('roundHistory').innerHTML='';
+  try{localStorage.removeItem('board_session');}catch(e){}
   document.getElementById('followupSection').style.display='none';
   await runSession(q,false);
   btn.disabled=false;
@@ -458,6 +498,7 @@ function newSession(){
   currentRound=0;
   sessionRounds=[];
   document.getElementById('roundHistory').innerHTML='';
+  try{localStorage.removeItem('board_session');}catch(e){}
   document.getElementById('followupSection').style.display='none';
   document.getElementById('question').value='';
   ['claude','gemini','gpt','synthesis'].forEach(id=>{
