@@ -6,6 +6,7 @@
 .textarea-expanded{min-height:400px!important}.expand-btn{background:transparent;border:1px solid var(–border);color:var(–text-dim);font-family:‘Space Mono’,monospace;font-size:9px;letter-spacing:1px;cursor:pointer;padding:4px 10px;border-radius:4px;margin-left:auto;transition:all 0.2s}.expand-btn:hover{border-color:var(–accent-gold);color:var(–accent-gold)}
 .warn-banner{background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-family:‘Space Mono’,monospace;font-size:11px;color:#f87171;display:none}.warn-banner.visible{display:block}
 .memory-section{background:var(–surface);border:1px solid var(–accent-gold);border-radius:12px;padding:16px;margin-bottom:16px;opacity:0.85}.memory-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}.memory-label{font-family:‘Space Mono’,monospace;font-size:10px;letter-spacing:2px;color:var(–accent-gold);text-transform:uppercase}.memory-toggle{font-family:‘Space Mono’,monospace;font-size:10px;color:var(–text-dim)}.memory-body{margin-top:12px}.memory-body textarea{min-height:120px;font-size:12px;font-family:‘Space Mono’,monospace}.memory-save{margin-top:8px;padding:8px 16px;background:transparent;border:1px solid var(–accent-gold);color:var(–accent-gold);border-radius:6px;font-family:‘Space Mono’,monospace;font-size:10px;letter-spacing:1px;cursor:pointer}.memory-save:hover{background:rgba(200,169,110,0.1)}.memory-status{font-family:‘Space Mono’,monospace;font-size:10px;color:var(–accent-green);margin-left:10px;opacity:0}
+.retry-btn{background:transparent;border:1px solid var(–text-dim);color:var(–text-dim);font-family:‘Space Mono’,monospace;font-size:9px;letter-spacing:1px;cursor:pointer;padding:3px 8px;border-radius:4px;margin-left:8px;transition:all 0.2s}.retry-btn:hover{border-color:var(–accent-gold);color:var(–accent-gold)}
 .copy-btn{background:transparent;border:none;color:var(–text-dim);font-family:‘Space Mono’,monospace;font-size:9px;letter-spacing:1px;cursor:pointer;padding:2px 6px;border-radius:4px;transition:color 0.2s}.copy-btn:hover{color:var(–accent-gold)}.copy-btn.copied{color:var(–accent-green)}
 .copy-btn{background:transparent;border:none;color:var(–text-dim);font-family:‘Space Mono’,monospace;font-size:9px;letter-spacing:1px;cursor:pointer;padding:2px 6px;border-radius:4px;transition:color 0.2s}.copy-btn:hover{color:var(–accent-gold)}.copy-btn.copied{color:var(–accent-green)}
 .round-container{margin-bottom:24px;border:1px solid var(–border);border-radius:12px;overflow:hidden}
@@ -44,7 +45,7 @@
   <div class="response-card card-gemini" id="card-gemini"><div class="card-header"><div class="card-dot"></div><div class="card-title">Gemini</div><div class="card-role">首席數據官 · 資料整合</div><button class="copy-btn" onclick="copyCard('gemini',this)">複製</button></div><div class="card-body" id="body-gemini"></div></div>
   <div class="response-card card-gpt" id="card-gpt"><div class="card-header"><div class="card-dot"></div><div class="card-title">ChatGPT</div><div class="card-role">財務風控長 · 數字審查</div><button class="copy-btn" onclick="copyCard('gpt',this)">複製</button></div><div class="card-body" id="body-gpt"></div></div>
   <div class="divider" id="divider" style="display:none"><div class="divider-line"></div><div class="divider-text">董事長綜合裁決</div><div class="divider-line"></div></div>
-  <div class="response-card card-synthesis" id="card-synthesis"><div class="card-header"><div class="card-dot"></div><div class="card-title">三方分歧分析</div><div class="card-role">供 CEO 決策參考</div><button class="copy-btn" onclick="copyCard('synthesis',this)">複製</button></div><div class="card-body" id="body-synthesis"></div></div>
+  <div class="response-card card-synthesis" id="card-synthesis"><div class="card-header"><div class="card-dot"></div><div class="card-title">三方分歧分析</div><div class="card-role">供 CEO 決策參考</div><button class="retry-btn" id="retryBtn" onclick="retrySynthesis()" style="display:none">↻ 重試</button><button class="copy-btn" onclick="copyCard('synthesis',this)">複製</button></div><div class="card-body" id="body-synthesis"></div></div>
 </div>
 
 <!-- Follow-up section -->
@@ -211,6 +212,26 @@ async function callSynthesis(q,c,g,o){
   const d=await r.json();if(d.error)throw new Error(d.error.message);return d.content[0].text;
 }
 
+// Store last session data for retry
+let lastSessionData={q:null,cv:null,gv:null,ov:null};
+
+async function retrySynthesis(){
+  const {q,cv,gv,ov}=lastSessionData;
+  if(!q)return;
+  const btn=document.getElementById('retryBtn');
+  btn.textContent='⏳ 重試中...';btn.disabled=true;
+  setCard('synthesis','<div class="loading"><div class="spinner"></div>重新分析中...</div>',false);
+  try{
+    const s=await callSynthesis(q,cv,gv,ov);
+    setCard('synthesis',s);
+    btn.textContent='↻ 重試';
+  }catch(e){
+    setCard('synthesis',e.message,true);
+    btn.textContent='↻ 重試';
+  }
+  btn.disabled=false;
+}
+
 function toggleExpand(){
   const ta=document.getElementById('question');
   const btn=document.getElementById('expandBtn');
@@ -287,11 +308,14 @@ async function runSession(q,isFollowup=false){
   document.getElementById('statusText').textContent='彙整三方意見...';
   document.getElementById('divider').style.display='flex';
 
+  // Store for retry
+  lastSessionData={q,cv,gv,ov};
+
   let sv=null;
   const successCount=[cv,gv,ov].filter(Boolean).length;
   if(successCount>=2){
-    try{sv=await callSynthesis(q,cv,gv,ov);setCard('synthesis',sv);}
-    catch(e){setCard('synthesis',e.message,true);}
+    try{sv=await callSynthesis(q,cv,gv,ov);setCard('synthesis',sv);document.getElementById('retryBtn').style.display='none';}
+    catch(e){setCard('synthesis',e.message,true);document.getElementById('retryBtn').style.display='inline-block';}
   }else{setCard('synthesis','至少需要兩位顧問回應才能進行分析',true);}
 
   document.getElementById('statusBar').classList.remove('visible');
