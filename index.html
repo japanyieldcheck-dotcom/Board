@@ -50,7 +50,9 @@
     <button class="memory-save" onclick="saveMemory()">💾 儲存記憶</button>
   </div>
 </div>
-<div class="input-section"><div style="display:flex;align-items:center;margin-bottom:10px"><div class="input-label" style="margin-bottom:0">📋 議題輸入</div><button class="expand-btn" id="expandBtn" onclick="toggleExpand()">⛶ 展開</button></div><textarea id="question" placeholder="輸入你想讓董事會討論的問題&#10;例如：這個東京物件的投資邏輯是否成立？"></textarea><button class="btn-submit" id="submitBtn" onclick="askAll()">召開董事會 →</button></div>
+<div class="input-section"><div style="display:flex;align-items:center;margin-bottom:10px"><div class="input-label" style="margin-bottom:0">📋 議題輸入</div><button class="expand-btn" id="expandBtn" onclick="toggleExpand()">⛶ 展開</button></div><textarea id="question" placeholder="輸入你想讓董事會討論的問題&#10;例如：這個東京物件的投資邏輯是否成立？"></textarea>
+<div style="margin-top:10px"><div class="input-label" style="margin-bottom:6px;font-size:9px">🎯 本次會議目標（達成後自動結束）</div><textarea id="meetingGoal" style="min-height:50px;font-size:13px" placeholder="例：確認是否購入東京物件｜決定A7預案執行方式&#10;不填則由AI自動判斷"></textarea></div>
+<button class="btn-submit" id="submitBtn" onclick="askAll()">召開董事會 →</button></div>
 <div class="status-bar" id="statusBar"><div class="status-dot"></div><span id="statusText">董事會進行中...</span></div>
 <div class="responses">
   <div class="response-card card-claude" id="card-claude"><div class="card-header"><div class="card-dot"></div><div class="card-title">Claude</div><div class="card-role">首席研究官 · 風險審查</div><button class="copy-btn" onclick="copyCard('claude',this)">複製</button></div><div class="card-body" id="body-claude"></div></div>
@@ -201,7 +203,7 @@ function loadMemory(){
 }
 
 function saveSession(){
-  try{localStorage.setItem('board_session',JSON.stringify({rounds:sessionRounds,round:currentRound,ts:Date.now()}));}catch(e){}
+  try{localStorage.setItem('board_session',JSON.stringify({rounds:sessionRounds,round:currentRound,ts:Date.now()}));}catch(e){console.warn('會議記錄儲存失敗（容量不足），請複製重要結論。');}
 }
 function restoreSession(){
   try{
@@ -240,7 +242,7 @@ loadMemory();
 checkWarnBanner();
 restoreSession();
 
-function getSYS(){const mem=getMemory();return`你是James的AI董事會成員。回答請用繁體中文，簡潔直接，條列重點。\n\n【分析原則—強制執行】\n1.有數據：直接引用，標注來源\n2.無數據：必須標注「這是推論，依據是X，信心等級：高/中/低」\n3.禁止將推論當事實陳述\n4.所有結論必須區分：事實／假設／建議\n5.分析角度：以有10年台灣財務實戰經驗的專業顧問視角，不接受模糊建議\n6.每個建議必須可執行，給出具體行動步驟\n\n【CSI數據驗證條款】\nGemini(CSI)提供的任何數字、報酬率、趨勢資料、平台數據，不得直接作為決策依據。必須經過以下其中一種方式交叉驗證：CFO重新計算、外部資料查證、James自有紀錄確認、或CRO從轉換結果反向驗證。無法驗證的資料只能標記為「假設」，不能標記為「事實」。${mem?'\n\n【背景記憶】\n'+mem:''}`}
+function getSYS(){const mem=getMemory();const goal=getMeetingGoal();return`你是James的AI董事會成員。回答請用繁體中文，簡潔直接，條列重點。${goal?'\n\n【本次會議目標】'+goal+'\n達成此目標後，會議應結束並輸出最終結論。':''}\n\n【分析原則—強制執行】\n1.有數據：直接引用，標注來源\n2.無數據：必須標注「這是推論，依據是X，信心等級：高/中/低」\n3.禁止將推論當事實陳述\n4.所有結論必須區分：事實／假設／建議\n5.分析角度：以有10年台灣財務實戰經驗的專業顧問視角，不接受模糊建議\n6.每個建議必須可執行，給出具體行動步驟\n\n【CSI數據驗證條款】\nGemini(CSI)提供的任何數字、報酬率、趨勢資料、平台數據，不得直接作為決策依據。必須經過以下其中一種方式交叉驗證：CFO重新計算、外部資料查證、James自有紀錄確認、或CRO從轉換結果反向驗證。無法驗證的資料只能標記為「假設」，不能標記為「事實」。${mem?'\n\n【背景記憶】\n'+mem:''}`}
 function getP(){const SYS=getSYS();return{
   claude:SYS+'\n你的角色：首席研究官(CRO)。專注精準審查、風險識別、邏輯漏洞偵測。每個風險點必須說明：觸發條件、影響程度、緩解方案。',
   gemini:SYS+'\n你的角色：策略情報長(CSI)。專注策略情報、市場方向分析、替代路線評估、轉型選項。站在「如果這條路不通，下一條更可能成功的路是什麼」的角度。【重要限制】你提供的所有數字、報酬率、市場規模、平台趨勢數據，只能標記為「假設」，必須經CFO或外部資料交叉驗證後才能升級為事實。',
@@ -248,25 +250,39 @@ function getP(){const SYS=getSYS();return{
 };}
 
 // ★ FIXED: max_tokens 1000→2500 for Claude and GPT; 1200→3000 for Synthesis
+// ★ FIXED: fetchWithTimeout prevents infinite hang
+async function fetchWithTimeout(url, options, ms=60000){
+  const ctrl=new AbortController();
+  const timer=setTimeout(()=>ctrl.abort(),ms);
+  try{
+    return await fetch(url,{...options,signal:ctrl.signal});
+  } catch(e){
+    if(e.name==='AbortError') throw new Error('請求逾時（60秒），請稍後再試');
+    throw e;
+  } finally{
+    clearTimeout(timer);
+  }
+}
+
 async function callClaude(q){
   const k=getKeys().claude;
   if(!k)throw new Error('Claude API Key 未設定');
-  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:2500,system:getP().claude,messages:[{role:'user',content:q}]})});
+  const r=await fetchWithTimeout('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:2500,system:getP().claude,messages:[{role:'user',content:q}]})});
   const d=await r.json();if(d.error)throw new Error(d.error.message);return d.content[0].text;
 }
 
 async function callGemini(q){
   const k=getKeys().gemini;
   if(!k)throw new Error('Gemini API Key 未設定');
-  const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${k}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:getP().gemini+'\n\n'+q}]}]})});
-  const d=await r.json();if(d.error)throw new Error(d.error.message);return d.candidates[0].content.parts[0].text;
+  const r=await fetchWithTimeout(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${k}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:getP().gemini+'\n\n'+q}]}]})});
+  const d=await r.json();if(d.error)throw new Error(d.error.message);if(!d.candidates||!d.candidates[0])throw new Error('Gemini回應為空或被封鎖');return d.candidates[0].content.parts[0].text;
 }
 
 async function callGPT(q){
   const k=getKeys().openai;
   if(!k)throw new Error('OpenAI API Key 未設定');
-  const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${k}`},body:JSON.stringify({model:'gpt-4o-mini',max_tokens:2500,messages:[{role:'system',content:getP().gpt},{role:'user',content:q}]})});
-  const d=await r.json();if(d.error)throw new Error(d.error.message);return d.choices[0].message.content;
+  const r=await fetchWithTimeout('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${k}`},body:JSON.stringify({model:'gpt-4o-mini',max_tokens:2500,messages:[{role:'system',content:getP().gpt},{role:'user',content:q}]})});
+  const d=await r.json();if(d.error)throw new Error(d.error.message);if(!d.choices||!d.choices[0])throw new Error('GPT回應為空');return d.choices[0].message.content;
 }
 
 async function callSynthesis(q,c,g,o){
@@ -278,8 +294,9 @@ async function callSynthesis(q,c,g,o){
   const missing=[];
   if(!c)missing.push('Claude');if(!g)missing.push('Gemini');if(!o)missing.push('GPT');
   const note=missing.length?`（注意：${missing.join('、')}本次未回應，以下為${3-missing.length}方分析）`:'';
-  const prompt=`問題：${q}\n\n${parts.join('\n\n')}\n\n請做分歧分析${note}，角色：Claude=CRO首席研究官、Gemini=CSI策略情報長、GPT=CFO財務風控長。格式：\n1.【共識點】三方一致結論（標注信心等級：高/中/低）\n2.【分歧點】列出各董事（CRO/CSO/CFO）的不同意見及依據\n3.【推論警示】標明哪位董事（CRO/CSO/CFO）的哪個結論是推論非數據支撐\n4.【共識程度】本輪整體共識程度（高/中/低）及原因\n5.【CEO建議】一句話+具體執行步驟\n6.【建議下一輪】是/否+原因`;
-  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:3000,system:'你是James的AI董事會主持人。每個結論必須區分數據支撐與推論，推論需標注信心等級（高/中/低）。用繁體中文，結構化輸出。',messages:[{role:'user',content:prompt}]})});
+  const roundNum=sessionRounds.length+1;
+  const prompt=`【目前輪次：第${roundNum}輪】\n問題：${q}\n\n${parts.join('\n\n')}\n\n請做分歧分析${note}，角色：Claude=CRO首席研究官、Gemini=CSI策略情報長、GPT=CFO財務風控長。\n\n【強制格式】\n1.【共識點】三方一致結論（標注信心等級：高/中/低）\n2.【分歧點】列出各董事的不同意見及依據\n3.【推論警示】標明哪個結論是推論非數據支撐\n4.【會議裁決】\n  - 本輪目標是否達成？（是/否）\n  - 若是：輸出【最終結論】，格式：決策事項+執行步驟+負責人+時程\n  - 若否且輪次≤5：列出【唯一最關鍵未解分歧】供下輪討論\n  - 若否且輪次>5：強制輸出【待下次會議議題】清單，本次會議結束\n5.【會議狀態】CONTINUE 或 END（若有最終結論或輪次>5則END）`;
+  const r=await fetchWithTimeout('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:3000,system:'你是James的AI董事會主持人。每個結論必須區分數據支撐與推論，推論需標注信心等級（高/中/低）。用繁體中文，結構化輸出。',messages:[{role:'user',content:prompt}]})});
   const d=await r.json();if(d.error)throw new Error(d.error.message);return d.content[0].text;
 }
 
@@ -304,7 +321,7 @@ async function retrySynthesis(){
   if(!q)return;
   const btn=document.getElementById('retryBtn');
   btn.textContent='⏳ 重試中...';btn.disabled=true;
-  setCard('synthesis','<div class="loading"><div class="spinner"></div>重新分析中...</div>',false);
+  setLoading('synthesis','重新分析中...');
   try{
     const s=await callSynthesis(q,cv,gv,ov);
     setCard('synthesis',s);
@@ -331,9 +348,21 @@ function copyCard(id,btn){
     setTimeout(()=>{btn.textContent='複製';btn.classList.remove('copied');},2000);
   });
 }
+function setLoading(id, text='分析中...'){
+  const el=document.getElementById(`body-${id}`);
+  el.innerHTML=`<div class="loading"><div class="spinner"></div>${escapeHtml(text)}</div>`;
+}
+function escapeHtml(str){
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 function setCard(id,content,isError=false){
   const el=document.getElementById(`body-${id}`);
-  el.innerHTML=isError?`<div class="error-text">⚠ ${content}</div>`:content.replace(/\n/g,'<br>');
+  if(isError){
+    el.innerHTML=`<div class="error-text">⚠ ${escapeHtml(content)}</div>`;
+  } else {
+    // Safe: escape then convert newlines to <br>
+    el.innerHTML=escapeHtml(content).replace(/\n/g,'<br>');
+  }
 }
 function showCard(id){document.getElementById(`card-${id}`).classList.add('visible');}
 
@@ -347,6 +376,7 @@ function saveRoundToHistory(roundNum,topic,responses){
 }
 
 function br(s){return s?s.split("\n").join("<br>"):"";}
+function brSafe(s){return s?escapeHtml(s).replace(/\n/g,'<br>'):'';}
 function renderRoundInHistory(roundNum,topic,cv,gv,ov,sv){
   const hist=document.getElementById('roundHistory');
   const div=document.createElement('div');
@@ -356,13 +386,13 @@ function renderRoundInHistory(roundNum,topic,cv,gv,ov,sv){
   div.innerHTML=`
     <div class="round-header">
       <span class="round-badge">第${roundNum}輪</span>
-      <span class="round-topic">${shortTopic}</span>
+      <span class="round-topic">${escapeHtml(shortTopic)}</span>
     </div>
     <div class="round-content">
-      ${cv?`<div style="padding:12px 16px;border-bottom:1px solid var(--border)"><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--claude);margin-bottom:6px">CLAUDE — CRO</div><div style="font-size:13px;line-height:1.7;color:var(--text-dim)">${br(cv)}</div></div>`:''}
-      ${gv?`<div style="padding:12px 16px;border-bottom:1px solid var(--border)"><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--gemini);margin-bottom:6px">GEMINI — CSO</div><div style="font-size:13px;line-height:1.7;color:var(--text-dim)">${br(gv)}</div></div>`:''}
-      ${ov?`<div style="padding:12px 16px;border-bottom:1px solid var(--border)"><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--gpt);margin-bottom:6px">CHATGPT — CFO</div><div style="font-size:13px;line-height:1.7;color:var(--text-dim)">${br(ov)}</div></div>`:''}
-      ${sv?`<div style="padding:12px 16px;background:rgba(200,169,110,0.03)"><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--accent-gold);margin-bottom:6px">分歧分析</div><div style="font-size:13px;line-height:1.7;color:var(--text)">${br(sv)}</div></div>`:''}
+      ${cv?`<div style="padding:12px 16px;border-bottom:1px solid var(--border)"><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--claude);margin-bottom:6px">CLAUDE — CRO</div><div style="font-size:13px;line-height:1.7;color:var(--text-dim)">${brSafe(cv)}</div></div>`:''}
+      ${gv?`<div style="padding:12px 16px;border-bottom:1px solid var(--border)"><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--gemini);margin-bottom:6px">GEMINI — CSI</div><div style="font-size:13px;line-height:1.7;color:var(--text-dim)">${brSafe(gv)}</div></div>`:''}
+      ${ov?`<div style="padding:12px 16px;border-bottom:1px solid var(--border)"><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--gpt);margin-bottom:6px">CHATGPT — CFO</div><div style="font-size:13px;line-height:1.7;color:var(--text-dim)">${brSafe(ov)}</div></div>`:''}
+      ${sv?`<div style="padding:12px 16px;background:rgba(200,169,110,0.03)"><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--accent-gold);margin-bottom:6px">分歧分析</div><div style="font-size:13px;line-height:1.7;color:var(--text)">${brSafe(sv)}</div></div>`:''}
     </div>`;
   hist.appendChild(div);
 }
@@ -401,6 +431,12 @@ async function runSession(q,isFollowup=false){
   }else{setCard('synthesis','至少需要兩位顧問回應才能進行分析',true);}
 
   document.getElementById('statusBar').classList.remove('visible');
+
+  // Check if meeting should END
+  if(sv){
+    const isEnd=/會議狀態[】:：\s]*END/i.test(sv)||(currentRound>=4&&/待下[次個]會議/.test(sv));
+    if(isEnd)setTimeout(()=>showMeetingEnd(sv),500);
+  }
 
   currentRound++;
   const topic=isFollowup?`[第${currentRound}輪補充] `+q.substring(0,50):q;
@@ -455,6 +491,40 @@ async function askFollowup(){
   btn.disabled=false;
 }
 
+function showMeetingEnd(sv){
+  // Extract conclusion or pending topics from synthesis
+  const endDiv=document.getElementById('meetingEndBanner');
+  if(endDiv)endDiv.remove();
+  const banner=document.createElement('div');
+  banner.id='meetingEndBanner';
+  banner.style.cssText='background:rgba(200,169,110,0.12);border:2px solid var(--accent-gold);border-radius:12px;padding:16px;margin-top:16px;';
+  const hasConclusion=sv.includes('最終結論');
+  const hasPending=sv.includes('待下次會議');
+  banner.innerHTML=`
+    <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--accent-gold);margin-bottom:10px">${hasConclusion?'✅ 會議結束 — 已有結論':'📋 會議結束 — 議題移交下輪'}</div>
+    <div style="font-size:13px;line-height:1.8;color:var(--text)">${hasConclusion?'本次會議已達成決策，最終結論已記錄於上方分歧分析中。':'本次會議未能完全收斂，未解議題已整理為下次會議清單。'}</div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button onclick="copyEndSummary()" style="flex:1;padding:10px;background:var(--accent-gold);color:var(--bg);border:none;border-radius:6px;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;cursor:pointer">📋 複製結論/議題</button>
+      <button onclick="newSession()" style="padding:10px 16px;background:transparent;color:var(--text-dim);border:1px solid var(--border);border-radius:6px;font-family:'Space Mono',monospace;font-size:11px;cursor:pointer">🔄 開新議題</button>
+    </div>`;
+  document.getElementById('roundHistory').appendChild(banner);
+  banner.scrollIntoView({behavior:'smooth'});
+  // Disable followup
+  const fbtn=document.getElementById('followupBtn');
+  if(fbtn){fbtn.disabled=true;fbtn.textContent='會議已結束';}
+}
+
+function copyEndSummary(){
+  const sv=document.getElementById('body-synthesis');
+  if(sv)navigator.clipboard.writeText(sv.innerText).then(()=>{
+    const btn=event.target;
+    btn.textContent='✓ 已複製';
+    setTimeout(()=>btn.textContent='📋 複製結論/議題',2000);
+  });
+}
+
+function getMeetingGoal(){return document.getElementById('meetingGoal')?document.getElementById('meetingGoal').value.trim():'';}
+
 function newSession(){
   if(!confirm('開始新議題將清除目前的討論記錄，確定嗎？'))return;
   currentRound=0;
@@ -467,6 +537,11 @@ function newSession(){
     document.getElementById(`card-${id}`).classList.remove('visible');
   });
   document.getElementById('divider').style.display='none';
+  const fbtn=document.getElementById('followupBtn');
+  if(fbtn){fbtn.disabled=false;fbtn.textContent='召開第2輪董事會 →';}
+  const endBanner=document.getElementById('meetingEndBanner');
+  if(endBanner)endBanner.remove();
+  document.getElementById('meetingGoal').value='';
   window.scrollTo(0,0);
 }
 </script>
