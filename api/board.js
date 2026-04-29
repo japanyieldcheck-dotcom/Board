@@ -1,7 +1,7 @@
 // AI董事會後端代理
 // API Keys存在Vercel環境變數，前端不接觸任何Key
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
 // CORS headers
 res.setHeader(‘Access-Control-Allow-Origin’, ‘*’);
 res.setHeader(‘Access-Control-Allow-Methods’, ‘POST, OPTIONS’);
